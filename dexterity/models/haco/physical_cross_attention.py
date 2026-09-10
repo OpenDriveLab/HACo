@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from gr00t.model.modules.dit import AdaLayerNorm, _sdpa_context
 
-from dexterity.models.pace.masked_dit import MaskedAlternateVLDiT
+from dexterity.models.haco.masked_dit import MaskedAlternateVLDiT
 
 
 class GatedPhysicalCrossAttention(nn.Module):

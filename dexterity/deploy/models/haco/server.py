@@ -25,7 +25,7 @@ from typing import Any, Mapping, cast
 import numpy as np
 import torch
 
-from dexterity.deploy.models.groot_n17.server import (
+from dexterity.deploy.models.haco.runtime import (
     LANGUAGE_KEY,
     STATE_KEYS,
     STATE_SLICES,
@@ -36,12 +36,13 @@ from dexterity.deploy.models.groot_n17.server import (
     write_json,
 )
 from dexterity.deploy.models.haco.contract import EXPERIMENT_CONTRACTS
-from dexterity.deploy.template.model_adapter import SharpAModelAdapter
 from dexterity.deploy.template.protocol import (
+    ACTION_SCHEMA,
     METADATA_FORMAT_SCHEMA,
     BaseSharpAPolicyAdapter,
     SharpAMetadataFormat,
     SharpAObservation,
+    SharpAPolicyAction,
 )
 from dexterity.deploy.template.server import SharpAPolicyServer
 from dexterity.models.haco.contract import get_action_contract
@@ -441,7 +442,7 @@ def load_policy(
         sys.path.insert(0, str(reference_repo))
     if embodiment_tag != EMBODIMENT:
         raise ValueError(f"HACO deployment supports only {EMBODIMENT!r}")
-    from scripts.train.groot_n17.embodiment import register_sharpa_absolute_eef_embodiment
+    from scripts.train.haco.embodiment import register_sharpa_absolute_eef_embodiment
 
     register_sharpa_absolute_eef_embodiment()
     import dexterity.models.haco.model  # noqa: F401
@@ -597,13 +598,81 @@ class HacoPolicy:
         }
 
 
-class HacoAdapter(SharpAModelAdapter):
+class HacoAdapter(BaseSharpAPolicyAdapter):
     def __init__(self, policy: HacoPolicy, spec: HacoCheckpointSpec) -> None:
         self.policy = policy
         self.model_kind = "haco"
         self.policy_family = "haco"
         self.spec = spec
         self.request_builder = HacoRequestBuilder(spec)
+
+    def reset(self, session_id: str) -> None:
+        self.request_builder.reset()
+        self.policy.reset({"session_id": session_id})
+
+    def infer(self, obs: SharpAObservation) -> SharpAPolicyAction:
+        result = self.policy.infer(self.request_builder.build(obs))
+        action = np.asarray(result["action_chunk_62d"], dtype=np.float32)
+        if action.ndim != 2 or action.shape[1] != ACTION_DIM or not len(action):
+            raise ValueError(f"HACO action must have shape (T,62), got {action.shape}")
+        action = np.ascontiguousarray(action)
+        frequency_hz = float(np.asarray(result.get("action_hz", ACTION_HZ)).item())
+        execute_start = int(np.asarray(result.get("execute_start", 0)).item())
+        execute_stop = int(np.asarray(result.get("execute_stop", len(action))).item())
+        rtc = int(np.asarray(result.get("rtc", 0)).item())
+        chunk_id = int(np.asarray(result.get("chunk_id", obs["request_id"])).item())
+        action_id = f"{obs['session_id']}:chunk:{chunk_id}"
+        diagnostics = result.get("diagnostics", {})
+        if not isinstance(diagnostics, Mapping):
+            diagnostics = {}
+        self.request_builder.record_result(result, action, action_id)
+        return {
+            "schema": ACTION_SCHEMA,
+            "session_id": obs["session_id"],
+            "request_id": obs["request_id"],
+            "action_id": action_id,
+            "revision": 0,
+            "timestamp_ns": time.time_ns(),
+            "execution": {
+                "frequency_hz": frequency_hz,
+                "action_length": len(action),
+                "execute_start": execute_start,
+                "execute_length": execute_stop - execute_start,
+                "rtc": rtc,
+            },
+            "action": {
+                "left_wrist": {
+                    "joint": None,
+                    "eef": action[:, :9],
+                    "eef_def": "absolute",
+                },
+                "right_wrist": {
+                    "joint": None,
+                    "eef": action[:, 9:18],
+                    "eef_def": "absolute",
+                },
+                "hand_joint": {
+                    "left": action[:, 18:40],
+                    "right": action[:, 40:62],
+                },
+            },
+            "auxiliary": {
+                "video": {"ego": None, "left_wrist": None, "right_wrist": None},
+                "tactile": {
+                    "deformation": None,
+                    "wrench": None,
+                    "hand_tau": None,
+                },
+            },
+            "diagnostics": {
+                **dict(diagnostics),
+                "policy_family": "haco",
+                "checkpoint_id": "pending-server-injection",
+                "checkpoint_path": "pending-server-injection",
+                "inference_latency_ms": 0.0,
+            },
+            "next_metadata_format": None,
+        }
 
     def initial_metadata_format(self) -> SharpAMetadataFormat:
         return deepcopy(metadata_format(self.spec))

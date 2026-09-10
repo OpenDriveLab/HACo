@@ -14,10 +14,10 @@ from typing import Any
 import numpy as np
 
 from dexterity.data.posttrain import action_indices
-from scripts.train.pace.data_factory import (
-    PaceDatasetFactory,
-    PaceShardedSingleStepDataset,
-    PaceStreamingMixtureDataset,
+from scripts.train.haco.base_data_factory import (
+    HacoBaseDatasetFactory,
+    HacoBaseShardedSingleStepDataset,
+    HacoStreamingMixtureDataset,
     _EmbodimentTag,
     _MessageType,
     _extract_step_data,
@@ -53,7 +53,7 @@ def control_groups(experiment: HacoExperiment) -> tuple[str, ...]:
     return (*WRIST_GROUPS, *Q_NOMINAL_GROUPS)
 
 
-class HacoShardedSingleStepDataset(PaceShardedSingleStepDataset):
+class HacoShardedSingleStepDataset(HacoBaseShardedSingleStepDataset):
     """HACO streaming sample with explicit action and eval sidechannels."""
 
     def __init__(
@@ -73,8 +73,8 @@ class HacoShardedSingleStepDataset(PaceShardedSingleStepDataset):
             )
             if stats.get("split") != "train":
                 raise ValueError("HACO sensor normalization must be train-only")
-            self.pace_store.stats = stats
-        self.haco_store = self.pace_store
+            self.sensor_store.stats = stats
+        self.haco_store = self.sensor_store
 
     def _episode_index_mapping(self) -> dict[int, int]:
         if self._loader_index_by_episode_index is None:
@@ -202,7 +202,7 @@ class HacoShardedSingleStepDataset(PaceShardedSingleStepDataset):
         return transformed
 
 
-class HacoDatasetFactory(PaceDatasetFactory):
+class HacoDatasetFactory(HacoBaseDatasetFactory):
     """Build a streaming train-only mixture for one HACO experiment."""
 
     def __init__(self, config) -> None:
@@ -281,7 +281,7 @@ class HacoDatasetFactory(PaceDatasetFactory):
         # the process-local loader metadata only.
         for dataset in all_datasets:
             dataset.episode_loader.stats.pop("relative_action", None)
-        train_dataset = PaceStreamingMixtureDataset(
+        train_dataset = HacoStreamingMixtureDataset(
             datasets=all_datasets,
             weights=all_weights,
             processor=processor,

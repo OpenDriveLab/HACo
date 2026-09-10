@@ -1,4 +1,4 @@
-"""Canonical GR00T N1.7 model pipeline exports."""
+"""External training-pipeline integration used by HACO."""
 
 from gr00t.model.gr00t_n1d7.setup import (
     Gr00tN1d7Pipeline,
@@ -6,10 +6,10 @@ from gr00t.model.gr00t_n1d7.setup import (
 )
 
 
-GrootN17Pipeline = Gr00tN1d7Pipeline
+HacoBasePipeline = Gr00tN1d7Pipeline
 
 __all__ = [
-    "GrootN17Pipeline",
+    "HacoBasePipeline",
     "Gr00tN1d7Pipeline",
     "convert_tensors_to_lists",
 ]

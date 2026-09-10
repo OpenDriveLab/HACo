@@ -2,7 +2,6 @@ __pycache__/
 *.py[cod]
 *.so
 .cache/
-.pytest_cache/
 .ruff_cache/
 .venv/
 .venvs/

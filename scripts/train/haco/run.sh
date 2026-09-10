@@ -12,7 +12,7 @@ HACO_DATASET_PATH="${HACO_DATASET_PATH:-${HACO_ROOT}/datasets/postrain/ur-sharpa
 HACO_DATASET_PATHS_JSON="${HACO_DATASET_PATHS_JSON:-}"
 HACO_MULTITASK_PROFILE="${HACO_MULTITASK_PROFILE:-}"
 HACO_MULTITASK_NORMALIZATION_DIR="${HACO_MULTITASK_NORMALIZATION_DIR:-}"
-HACO_BASE_MODEL_PATH="${HACO_BASE_MODEL_PATH:-${HACO_ROOT}/checkpoints/groot_n17/pretrain}"
+HACO_BASE_MODEL_PATH="${HACO_BASE_MODEL_PATH:-${HACO_ROOT}/checkpoints/base_model}"
 HACO_VLM_MODEL_PATH="${HACO_VLM_MODEL_PATH:-${HACO_ROOT}/checkpoints/cosmos_reason2_2b}"
 HACO_MODALITY_CONFIG_PATH="${HACO_MODALITY_CONFIG_PATH:-${HACO_ROOT}/scripts/train/haco/modality.py}"
 HACO_EMBODIMENT_TAG="${HACO_EMBODIMENT_TAG:-real_r1_pro_sharpa_absolute_eef}"
@@ -142,8 +142,6 @@ export OPEN_LOOP_EVAL_FIRST_STEP="${OPEN_LOOP_EVAL_FIRST_STEP:-1}"
 export OPEN_LOOP_EVAL_EVERY_N_STEPS="${OPEN_LOOP_EVAL_EVERY_N_STEPS:-${HACO_SAVE_STEPS}}"
 export OPEN_LOOP_EVAL_ARTIFACT_DIR="${OPEN_LOOP_EVAL_ARTIFACT_DIR:-${HACO_RUN_ROOT}/open_loop_eval}"
 export HACO_SENSOR_CACHE_DIR="${HACO_SENSOR_CACHE_DIR:-/tmp/haco-${UID}/sensor_cache}"
-# The shared cache primitive currently reads this internal variable.
-export PACE_SENSOR_CACHE_DIR="${HACO_SENSOR_CACHE_DIR}"
 unset WANDB_RUN_ID VIZ_ENABLE DZ_VIZ_MODE
 
 HACO_CONDA_NVCC_HOME="${HACO_CONDA_NVCC_HOME:-}"
@@ -159,7 +157,7 @@ fi
 
 if [[ "${HACO_PREBUILD_SENSOR_CACHE:-1}" == 1 ]]; then
     for dataset_path in "${HACO_DATASET_PATHS[@]}"; do
-        "${PYTHON_BIN}" -m scripts.train.pace.cache_sensors \
+        "${PYTHON_BIN}" -m scripts.train.haco.cache_sensors \
             --dataset-path "${dataset_path}" \
             --workers "${HACO_SENSOR_CACHE_BUILD_WORKERS:-16}"
     done

@@ -5,27 +5,22 @@ manipulation. It combines three-view RGB observations, robot state, joint
 torque history, fingertip wrench/deformation sensing, active-compliance action
 representations, and trained real-time chunking (RTC).
 
-This repository is the standalone release workspace extracted from
-[OpenDriveLab/Dexhand](https://github.com/OpenDriveLab/Dexhand) at source
-commit `bd0c503`. Datasets, checkpoints, experiment logs, machine-specific
-cluster orchestration, and credentials are intentionally not included.
+The repository contains the complete HACO source code for training,
+evaluation, and robot-side policy deployment. Datasets, checkpoints, and
+experiment logs are distributed separately.
 
 ## Layout
 
 ```text
 dexterity/models/haco/       HACO model, processor, contracts, and RTC
-dexterity/data/              SharpA/LeRobot data and normalization utilities
+dexterity/data/              data and normalization utilities
 dexterity/deploy/            unified SharpA WebSocket protocol and HACO server
 dexterity/callbacks/         training-time open-loop evaluation
 scripts/train/haco/          training driver and frozen experiment matrix
 scripts/launch/haco/         one launcher per HACO/ablation configuration
 scripts/inference/haco/      reproducible open-loop evaluation
 scripts/deploy/haco/         checkpoint deployment launcher
-tests/haco/                  HACO contracts and experiment tests
 ```
-
-The small `groot_n17`, `groot_rtc`, and `pace` compatibility modules are
-required building blocks used by HACO. They are not separate model releases.
 
 ## Requirements
 
@@ -61,7 +56,7 @@ preflight for the full model is:
 ```bash
 export ISAAC_GROOT_DIR="$PWD/third_party/Isaac-GR00T"
 export HACO_DATASET_PATH=/path/to/lerobot_dataset
-export HACO_BASE_MODEL_PATH=/path/to/groot_n17_checkpoint
+export HACO_BASE_MODEL_PATH=/path/to/pretrained_base_checkpoint
 export HACO_VLM_MODEL_PATH=/path/to/vlm_backbone
 HACO_DRY_RUN=1 bash scripts/launch/haco/haco.sh
 ```
@@ -99,7 +94,9 @@ licenses and access conditions must be handled separately.
 ```bash
 python -m compileall -q dexterity scripts
 find scripts -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
-pytest
+HACO_REFERENCE_REPO="$PWD/third_party/Isaac-GR00T" \
+  bash scripts/deploy/haco/launch.sh \
+  /path/to/haco-checkpoint /path/to/vlm-backbone --validate-only
 ```
 
 ## License

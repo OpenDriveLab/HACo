@@ -417,7 +417,7 @@ def install_haco_open_loop_eval_callback() -> None:
     import gr00t.experiment.experiment as experiment_module
 
     config = OpenLoopEvalConfig(
-        dreamzero_root=os.environ.get("HACO_ROOT", "."),
+        project_root=os.environ.get("HACO_ROOT", "."),
         embodiment_tag=os.environ.get(
             "HACO_EMBODIMENT_TAG", "real_r1_pro_sharpa_absolute_eef"
         ),

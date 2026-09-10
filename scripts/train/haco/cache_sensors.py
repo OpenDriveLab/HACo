@@ -6,12 +6,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 import time
 
-from .dataset import ensure_tactile_cache, pace_sensor_cache_root
+from .sensor_dataset import ensure_tactile_cache, sensor_cache_root
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build node-local mmap caches for compressed PACE tactile frames."
+        description="Build node-local mmap caches for compressed HACO tactile frames."
     )
     parser.add_argument("--dataset-path", action="append", required=True)
     parser.add_argument("--workers", type=int, default=16)
@@ -27,7 +27,7 @@ def main() -> int:
         root = Path(root_value).resolve()
         sources = sorted((root / "sensors/episodes").glob("episode_*.npz"))
         if not sources:
-            raise FileNotFoundError(f"no PACE sensor episodes under {root}")
+            raise FileNotFoundError(f"no HACO sensor episodes under {root}")
         jobs.extend((root, source) for source in sources)
 
     start = time.monotonic()
@@ -42,14 +42,14 @@ def main() -> int:
             completed_bytes += target.stat().st_size
             if completed == len(jobs) or completed % 10 == 0:
                 print(
-                    f"PACE sensor cache: {completed}/{len(jobs)} episodes, "
+                    f"HACO sensor cache: {completed}/{len(jobs)} episodes, "
                     f"{completed_bytes / 2**30:.1f} GiB ready",
                     flush=True,
                 )
 
-    roots = sorted({str(pace_sensor_cache_root(root)) for root, _ in jobs})
+    roots = sorted({str(sensor_cache_root(root)) for root, _ in jobs})
     print(
-        f"PACE sensor cache ready in {time.monotonic() - start:.1f}s: "
+        f"HACO sensor cache ready in {time.monotonic() - start:.1f}s: "
         + ", ".join(roots),
         flush=True,
     )

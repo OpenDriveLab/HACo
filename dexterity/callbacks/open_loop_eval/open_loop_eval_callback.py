@@ -52,7 +52,7 @@ COMPLIANCE_COMPONENT_MAJOR_ACTION_GROUPS = (
 
 @dataclass(frozen=True)
 class OpenLoopEvalConfig:
-    dreamzero_root: str
+    project_root: str
     embodiment_tag: str
     action_horizon: int = 40
     every_n_steps: int = 500
@@ -457,7 +457,7 @@ class OpenLoopEvalCallback(TrainerCallback):
         """Run policy inference for a prepared rollout.
 
         The default keeps the historical batched, independent-chunk behavior.
-        Stateful policies (for example PACE V4 RTC) override this narrow hook
+        Stateful policies override this narrow hook
         to generate chunks sequentially without duplicating callback logging,
         decoding, rendering, or artifact handling.
         """
@@ -594,7 +594,7 @@ class OpenLoopEvalCallback(TrainerCallback):
     ) -> np.ndarray | None:
         """The component-major prediction, or None when there is no such layout.
 
-        Models that predict nothing beyond the 62-D control (groot_n17, t_rex)
+        Models that predict nothing beyond the 62-D control
         have no component-major array at all, and the renderer must then read
         the control itself; the subclasses that do predict a compliance
         residual or a torque override this and return their own layout.
@@ -907,12 +907,12 @@ class OpenLoopEvalCallback(TrainerCallback):
                 ),
             )
             renderer_python = os.environ.get(
-                "DREAMZERO_RENDER_PYTHON",
+                "HACO_RENDER_PYTHON",
                 sys.executable,
             )
             render_env = os.environ.copy()
             render_env["PYTHONPATH"] = (
-                f"{self.config.dreamzero_root}:" + render_env.get("PYTHONPATH", "")
+                f"{self.config.project_root}:" + render_env.get("PYTHONPATH", "")
             )
             completed = subprocess.run(
                 [
@@ -926,7 +926,7 @@ class OpenLoopEvalCallback(TrainerCallback):
                     "--fps",
                     "15",
                 ],
-                cwd=self.config.dreamzero_root,
+                cwd=self.config.project_root,
                 env=render_env,
                 text=True,
                 stdout=subprocess.PIPE,

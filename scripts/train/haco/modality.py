@@ -20,7 +20,7 @@ from gr00t.data.types import (
     ModalityConfig,
 )
 
-from scripts.train.groot_n17.embodiment import (
+from scripts.train.haco.embodiment import (
     register_sharpa_absolute_eef_embodiment,
 )
 from scripts.train.haco.config import get_experiment

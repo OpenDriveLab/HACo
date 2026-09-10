@@ -7,7 +7,7 @@ from .sensor_common import FingerTokenContextualizer, make_mlp
 
 
 # Joint indices are root-to-tip inside each finger; outer order matches the
-# physical/tactile wire contract shared by all PACE encoders.
+# Physical/tactile wire contract used by HACO sensor encoders.
 FINGER_JOINT_INDICES = (
     (30, 31, 32, 33, 34),
     (35, 36, 37, 38),

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-OFFICIAL_GROOT_MODEL_TYPE = "Gr00tN1d7"
+BASE_MODEL_TYPE = "Gr00tN1d7"
 ACTION_HORIZON = 40
 ACTION_CARRIER_DIM = 132
 GPUS_PER_RUN = 4
@@ -287,15 +287,15 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def validate_official_checkpoint(path_value: str | Path) -> Path:
-    """Accept only an untouched official GR00T N1.7 source checkpoint."""
+    """Accept only an untouched pretrained source checkpoint."""
 
     path = Path(path_value).expanduser().resolve()
     lowered_parts = {part.lower() for part in path.parts}
-    forbidden = {"posttrain", "postrain", "groot_rtc", "groot-rtc", "logs"}
+    forbidden = {"posttrain", "postrain", "logs"}
     intersection = sorted(lowered_parts & forbidden)
     if intersection:
         raise ValueError(
-            "HACO must initialize from official GR00T, not a task/RTC "
+            "HACO must initialize from a pretrained base, not a task checkpoint; "
             f"checkpoint; forbidden path components={intersection}: {path}"
         )
     config_path = path / "config.json"
@@ -305,10 +305,10 @@ def validate_official_checkpoint(path_value: str | Path) -> Path:
             f"official checkpoint requires config.json and processor_config.json: {path}"
         )
     payload = _read_json(config_path)
-    if payload.get("model_type") != OFFICIAL_GROOT_MODEL_TYPE:
+    if payload.get("model_type") != BASE_MODEL_TYPE:
         raise ValueError(
             "HACO source model_type must be "
-            f"{OFFICIAL_GROOT_MODEL_TYPE!r}, got {payload.get('model_type')!r}"
+            f"{BASE_MODEL_TYPE!r}, got {payload.get('model_type')!r}"
         )
     if int(payload.get("action_horizon", -1)) != ACTION_HORIZON:
         raise ValueError(

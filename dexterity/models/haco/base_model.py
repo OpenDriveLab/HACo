@@ -1,9 +1,4 @@
-"""Canonical GR00T N1.7 model base.
-
-Derived policies import the base from this module instead of reaching into the
-upstream checkout directly. This keeps the inheritance boundary visible in
-our code while the implementation remains the official GR00T N1.7 model.
-"""
+"""External model-base integration used by HACO."""
 
 import json
 from pathlib import Path
@@ -15,17 +10,11 @@ from gr00t.model.gr00t_n1d7.gr00t_n1d7 import (
 )
 
 
-GrootN17 = Gr00tN1d7
-GrootN17ActionHead = Gr00tN1d7ActionHead
-
-
 def get_backbone_cls(config):
-    """Resolve the official backbone from either a Hub id or a local mirror.
+    """Resolve the backbone from either a Hub id or a local snapshot.
 
-    Upstream only recognizes model names containing the original Hub id.  Our
-    checkpoint layout intentionally stores the Cosmos mirror at
-    ``checkpoints/cosmos_reason2_2b``.  Treat a local Qwen3-VL config as the
-    same official backbone without changing the path recorded in checkpoints.
+    The external implementation recognizes its canonical Hub id. A local
+    Qwen3-VL snapshot is equivalent and is detected from ``config.json``.
     """
 
     try:
@@ -42,8 +31,6 @@ def get_backbone_cls(config):
         raise
 
 __all__ = [
-    "GrootN17",
-    "GrootN17ActionHead",
     "Gr00tN1d7",
     "Gr00tN1d7ActionHead",
     "get_backbone_cls",

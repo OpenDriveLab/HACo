@@ -8,8 +8,8 @@ from diffusers.models.attention import Attention
 
 from gr00t.model.modules.dit import AdaLayerNorm, _sdpa_context
 
-from dexterity.models.pace.masked_dit import MaskedAlternateVLDiT
-from dexterity.models.pace.variants.fuse_v2_physcross.physical_dit import (
+from .masked_dit import MaskedAlternateVLDiT
+from .physical_cross_attention import (
     GatedPhysicalCrossAttention,
     PhysicalCrossMaskedAlternateVLDiT,
 )

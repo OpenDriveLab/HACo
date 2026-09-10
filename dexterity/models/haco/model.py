@@ -1,4 +1,4 @@
-"""Standalone HACO model family rooted at official GR00T N1.7."""
+"""HACO model implementation."""
 
 from __future__ import annotations
 
@@ -13,9 +13,11 @@ from torch import nn
 from transformers import AutoConfig, AutoModel, AutoProcessor, PreTrainedModel
 from transformers.feature_extraction_utils import BatchFeature
 
-from dexterity.models.groot_n17.model import GrootN17, get_backbone_cls
-from dexterity.models.groot_n17.processor import Gr00tN1d7DataCollator
-from dexterity.models.pace.local_hf import resolve_local_model_path
+from gr00t.model.gr00t_n1d7.gr00t_n1d7 import Gr00tN1d7
+from gr00t.model.gr00t_n1d7.processing_gr00t_n1d7 import Gr00tN1d7DataCollator
+
+from .base_model import get_backbone_cls
+from .local_model import resolve_local_model_path
 
 from .action_head import HacoActionHead
 from .config import HacoConfig
@@ -193,7 +195,7 @@ def reinitialize_haco_extension_parameters(
     }
 
 
-class Haco(GrootN17):
+class Haco(Gr00tN1d7):
     """The sole model class used by every HACO matrix row."""
 
     config_class = HacoConfig

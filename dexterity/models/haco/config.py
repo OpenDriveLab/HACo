@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from dexterity.models.groot_n17.config import GrootN17Config
+from gr00t.configs.model.gr00t_n1d7 import Gr00tN1d7Config
 
 from .contract import (
     ACTION_CONTRACT_NAMES,
@@ -23,7 +23,7 @@ from .rtc import (
 
 HACO_MODEL_TYPE = "Haco"
 HACO_CHECKPOINT_SCHEMA = "haco.checkpoint.v1"
-HACO_OFFICIAL_BASE = "checkpoints/groot_n17/pretrain"
+HACO_OFFICIAL_BASE = "checkpoints/base_model"
 
 SENSOR_ENCODER_MODES = (
     "none",
@@ -73,8 +73,8 @@ HACO_CONFIG_FIELDS = (
 )
 
 
-class HacoConfig(GrootN17Config):
-    """GR00T-compatible config encoding one HACO experiment variant."""
+class HacoConfig(Gr00tN1d7Config):
+    """Configuration for one HACO experiment variant."""
 
     model_type = HACO_MODEL_TYPE
 

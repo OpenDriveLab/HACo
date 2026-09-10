@@ -277,7 +277,7 @@ def model_action_to_wire_layout(action_model: Any) -> np.ndarray:
 
 
 def direct_eef_interface_metadata() -> dict[str, Any]:
-    """Describe the robot/model boundary used by GR00T, PACE and pi0.5."""
+    """Describe the public robot/model boundary used by HACO."""
 
     return {
         "schema": DIRECT_EEF_INTERFACE_SCHEMA,

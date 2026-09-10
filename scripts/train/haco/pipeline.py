@@ -12,10 +12,7 @@ from gr00t.experiment.dist_utils import get_rank
 from gr00t.model.registry import register_model
 
 from dexterity.models.haco import Haco, HacoConfig, HacoProcessor
-from scripts.train.groot_n17.pipeline import (
-    GrootN17Pipeline,
-    convert_tensors_to_lists,
-)
+from scripts.train.haco.base_pipeline import HacoBasePipeline, convert_tensors_to_lists
 from scripts.train.haco.checkpoint import (
     load_official_as_haco,
     write_initialization_manifest,
@@ -23,7 +20,7 @@ from scripts.train.haco.checkpoint import (
 from scripts.train.haco.data_factory import HacoDatasetFactory
 
 
-class HacoPipeline(GrootN17Pipeline):
+class HacoPipeline(HacoBasePipeline):
     model_class = Haco
     processor_class = HacoProcessor
 

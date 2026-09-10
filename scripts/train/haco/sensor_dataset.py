@@ -22,12 +22,12 @@ from dexterity.data.posttrain import (
 )
 
 
-def pace_sensor_cache_root(dataset_root: str | Path) -> Path:
+def sensor_cache_root(dataset_root: str | Path) -> Path:
     root = Path(dataset_root).resolve()
     base = Path(
         os.environ.get(
-            "PACE_SENSOR_CACHE_DIR",
-            f"/tmp/dreamzero-{os.getuid()}/pace_sensor_cache",
+            "HACO_SENSOR_CACHE_DIR",
+            f"/tmp/haco-{os.getuid()}/sensor_cache",
         )
     )
     namespace = hashlib.sha256(str(root).encode("utf-8")).hexdigest()[:16]
@@ -53,7 +53,7 @@ def _valid_tactile_cache(path: Path, source: Path) -> bool:
 def ensure_tactile_cache(dataset_root: str | Path, source: str | Path) -> Path:
     """Extract the large compressed tactile member into a local mmap-able NPY."""
     source = Path(source)
-    target = pace_sensor_cache_root(dataset_root) / f"{source.stem}.tactile.npy"
+    target = sensor_cache_root(dataset_root) / f"{source.stem}.tactile.npy"
     target.parent.mkdir(parents=True, exist_ok=True)
     if _valid_tactile_cache(target, source):
         return target
@@ -120,7 +120,7 @@ def load_cached_sensor_episode(
     return sensors
 
 
-class PaceMetadataStore:
+class HacoSensorStore:
     def __init__(
         self,
         dataset_root: str | Path,
@@ -136,12 +136,12 @@ class PaceMetadataStore:
         stats_path = self.root / "meta/sensor_stats.json"
         self.stats = json.loads(stats_path.read_text(encoding="utf-8"))
         if self.stats.get("split") != "train":
-            raise ValueError("PACE normalization statistics must be train-only")
+            raise ValueError("HACO normalization statistics must be train-only")
         self._cache: OrderedDict[int, Any] = OrderedDict()
         info = json.loads((self.root / "meta/info.json").read_text(encoding="utf-8"))
         self.chunks_size = int(info["chunks_size"])
         if "anchor_valid" not in info.get("features", {}):
-            raise ValueError("PACE requires the canonical posttrain v2 contract")
+            raise ValueError("HACO requires the canonical posttrain v2 contract")
         self.sensor_dir = self.root / "sensors/episodes"
         self._anchor_cache: dict[int, np.ndarray] = {}
 
@@ -170,7 +170,7 @@ class PaceMetadataStore:
         payload = self.episode(episode_index)
         anchor_valid = self.anchor_valid(episode_index)
         if anchor < 0 or anchor >= payload.length or not anchor_valid[anchor]:
-            raise ValueError(f"episode {episode_index} row {anchor} is not a PACE anchor")
+            raise ValueError(f"episode {episode_index} row {anchor} is not a HACO anchor")
         history = history_indices(anchor)
         future = action_indices(anchor, payload.length)
         tau = normalize(payload.tau[history], self.stats["tau"], clip=self.clip)
@@ -191,7 +191,7 @@ class PaceMetadataStore:
             "tactile_wrench_valid": tactile_valid.T,
             "tactile_deformation": deformation,
             "tactile_deformation_valid": deformation_valid,
-            # PACE predicts wrist/q_exe/delta_q (106-D) from the 150-D disk
+            # HACO predicts wrist/q_exe/delta_q (106-D) from the 150-D disk
             # action. Exact anchors guarantee that every transition is valid.
             "action_component_valid": np.ones((len(future), 106), dtype=bool),
         }

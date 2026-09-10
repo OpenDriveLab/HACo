@@ -54,16 +54,11 @@ tensorflow = [
   "tensorflow",
 ]
 dev = [
-  "pytest>=8",
   "ruff>=0.15",
 ]
 
 [tool.setuptools.packages.find]
 include = ["dexterity*", "scripts*"]
-
-[tool.pytest.ini_options]
-addopts = "-ra --import-mode=importlib"
-testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 88

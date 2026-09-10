@@ -1,6 +1,6 @@
 # HACO deployment
 
-The HACO server is independent from `pace_v4`. It accepts checkpoints with:
+The HACO server accepts checkpoints with:
 
 ```text
 model_type = Haco

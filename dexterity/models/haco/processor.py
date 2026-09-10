@@ -16,11 +16,11 @@ import numpy as np
 import torch
 from transformers.feature_extraction_utils import BatchFeature
 
-from dexterity.models.groot_n17.processor import (
+from gr00t.model.gr00t_n1d7.processing_gr00t_n1d7 import (
     Gr00tN1d7DataCollator,
     Gr00tN1d7Processor,
 )
-from dexterity.models.pace.local_hf import resolve_local_model_path
+from .local_model import resolve_local_model_path
 
 from .config import CAMERA_MODES, PHYSICAL_INTEGRATIONS, SENSOR_ENCODER_MODES
 from .contract import get_action_contract

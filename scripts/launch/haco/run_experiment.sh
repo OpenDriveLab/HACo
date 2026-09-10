@@ -32,7 +32,7 @@ esac
 export HACO_ROOT HACO_EXPERIMENT_ID
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1,2,3}"
 export HACO_MASTER_PORT="${HACO_MASTER_PORT:-${DEFAULT_PORT}}"
-export HACO_BASE_MODEL_PATH="${HACO_ROOT}/checkpoints/groot_n17/pretrain"
+export HACO_BASE_MODEL_PATH="${HACO_BASE_MODEL_PATH:-${HACO_ROOT}/checkpoints/base_model}"
 if [[ "${HACO_EXPERIMENT_ID}" == hp_wo_haptic ]]; then
     export HACO_PREBUILD_SENSOR_CACHE="${HACO_PREBUILD_SENSOR_CACHE:-0}"
 fi

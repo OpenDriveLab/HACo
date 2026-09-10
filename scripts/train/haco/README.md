@@ -1,12 +1,11 @@
 # HACO training
 
-HACO is an independent model family initialized from the official GR00T N1.7
-checkpoint. It does not load or resume `pace_v4` checkpoints and accepts only
-the HACO experiment ids declared in `config.py`.
+The training entry point accepts only the HACO experiment ids declared in
+`config.py` and initializes them from a compatible pretrained base checkpoint.
 
 Formal runs are intentionally rigid about model and control semantics:
 
-- official `checkpoints/groot_n17/pretrain` initialization (`Gr00tN1d7`),
+- initialization from `checkpoints/base_model`,
 - one UR-SharpA task dataset, its complete train split, and no validation split,
 - 4 GPUs, per-device batch 12, global batch 48,
 - a launcher-owned step schedule with evenly spaced checkpoints, and seed 42,
@@ -37,7 +36,7 @@ Run preflight without starting training:
 HACO_DRY_RUN=1 bash scripts/launch/haco/haco.sh
 ```
 
-Run an integration smoke initialized from official GR00T:
+Run an integration smoke:
 
 ```bash
 HACO_SMOKE=1 CUDA_VISIBLE_DEVICES=0,1,2,3 \

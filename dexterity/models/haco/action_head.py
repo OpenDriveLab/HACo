@@ -8,12 +8,13 @@ import torch
 from torch import nn
 from transformers.feature_extraction_utils import BatchFeature
 
-from dexterity.models.groot_n17.model import GrootN17ActionHead
-from dexterity.models.groot_rtc.action_head import PerTokenActionEncoder
-from dexterity.models.pace.force_encoder import ForceEncoder
-from dexterity.models.pace.force_tactile_encoder import ForceTactileEncoder
-from dexterity.models.pace.masked_dit import MaskedAlternateVLDiT
-from dexterity.models.pace.tactile_encoder import TactileEncoder
+from gr00t.model.gr00t_n1d7.gr00t_n1d7 import Gr00tN1d7ActionHead
+
+from .force_encoder import ForceEncoder
+from .force_tactile_encoder import ForceTactileEncoder
+from .masked_dit import MaskedAlternateVLDiT
+from .tactile_encoder import TactileEncoder
+from .token_action_encoder import PerTokenActionEncoder
 
 from .contract import get_action_contract
 from .physical_integration import HacoPhysicalCrossDiT
@@ -34,7 +35,7 @@ def _masked_mse(
     return values.sum() / mask.sum().clamp_min(1).to(prediction.dtype)
 
 
-class HacoActionHead(GrootN17ActionHead):
+class HacoActionHead(Gr00tN1d7ActionHead):
     """One configurable action head for all eleven HACO runs."""
 
     def __init__(self, config) -> None:
