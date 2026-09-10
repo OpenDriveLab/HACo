@@ -86,7 +86,7 @@ def _env_bool(name: str, default: bool) -> bool:
 
 def _training_dataset_paths(args: FinetuneConfig) -> list[Path]:
     raw = os.environ.get("HACO_DATASET_PATHS_JSON")
-    if raw is None:
+    if not raw:
         return [Path(args.dataset_path).expanduser().resolve()]
     try:
         values = json.loads(raw)

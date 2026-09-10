@@ -1,7 +1,7 @@
 """Frozen HACO experiment contracts and launch-time validation.
 
-This module deliberately has no Isaac-GR00T imports.  Launchers and tests can
-therefore validate the formal matrix before importing the training runtime.
+This module deliberately has no Isaac-GR00T imports, so launchers can validate
+the experiment matrix before importing the training runtime.
 """
 
 from __future__ import annotations

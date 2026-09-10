@@ -1,105 +1,100 @@
 # HACO
 
 HACO is a vision-language-action policy for contact-rich bimanual dexterous
-manipulation. It combines three-view RGB observations, robot state, joint
-torque history, fingertip wrench/deformation sensing, active-compliance action
-representations, and trained real-time chunking (RTC).
+manipulation. It combines RGB observations, robot state, torque and tactile
+sensing, active-compliance actions, and real-time chunking (RTC).
 
-The repository contains the complete HACO source code for training,
-evaluation, and robot-side policy deployment. Datasets, checkpoints, and
-experiment logs are distributed separately.
+## Setup
 
-## Layout
-
-```text
-dexterity/models/haco/       HACO model, processor, contracts, and RTC
-dexterity/data/              data and normalization utilities
-dexterity/deploy/            unified SharpA WebSocket protocol and HACO server
-dexterity/callbacks/         training-time open-loop evaluation
-scripts/train/haco/          training driver and frozen experiment matrix
-scripts/launch/haco/         one launcher per HACO/ablation configuration
-scripts/inference/haco/      reproducible open-loop evaluation
-scripts/deploy/haco/         checkpoint deployment launcher
-```
-
-## Requirements
-
-- Python 3.10 or 3.11
-- CUDA-compatible PyTorch for training and deployment
-- NVIDIA Isaac-GR00T checked out locally (the code imports its `gr00t`
-  package)
-- an official GR00T N1.7 checkpoint and the configured vision-language
-  backbone
-- a converted UR-SharpA LeRobot dataset for training/evaluation
-
-Create an environment and install this repository:
+HACO uses Python 3.10 and CUDA 12.8 on Linux. Install `git-lfs`, FFmpeg, and
+[`uv`](https://docs.astral.sh/uv/), then create the environment:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-git clone https://github.com/NVIDIA/Isaac-GR00T.git third_party/Isaac-GR00T
-pip install -e third_party/Isaac-GR00T
+sudo apt-get update
+sudo apt-get install -y git-lfs ffmpeg
+git lfs install
+
+git clone https://github.com/OpenDriveLab/HACo.git
+cd HACo
+git clone --recurse-submodules https://github.com/NVIDIA/Isaac-GR00T.git \
+  third_party/Isaac-GR00T
+git -C third_party/Isaac-GR00T checkout \
+  4b1dca9d88d2a0b9ea5a65aa61c82ff89f5c4f0e
+git -C third_party/Isaac-GR00T submodule update --init --recursive
+
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"
+cd third_party/Isaac-GR00T
+uv sync --python 3.10
+cd ../..
+
+uv pip install --python third_party/Isaac-GR00T/.venv/bin/python -e .
+source third_party/Isaac-GR00T/.venv/bin/activate
 ```
 
-The exact CUDA/PyTorch build should match the target machine. HACO deployment
-currently validates `transformers==4.57.3` and `tokenizers==0.22.2`.
-Install `.[deployment]` for hand-retargeting support, `.[video]` for the
-optional Decord/TorchCodec backends, or `.[tensorflow]` when TensorFlow tensor
-conversion is required.
+Download the pretrained base model and VLM backbone:
+
+```bash
+mkdir -p checkpoints
+hf download nvidia/GR00T-N1.7-3B --local-dir checkpoints/base_model
+hf download nvidia/Cosmos-Reason2-2B \
+  --local-dir checkpoints/cosmos_reason2_2b
+```
+
+Training data must use the LeRobot format and include `meta/info.json` and
+`meta/modality.json`.
 
 ## Training
 
-All launchers are configured with environment variables. A no-training
-preflight for the full model is:
+Log in to Weights & Biases and select the account or team that will own the
+run:
 
 ```bash
-export ISAAC_GROOT_DIR="$PWD/third_party/Isaac-GR00T"
+wandb login
+export WANDB_ENTITY="your-wandb-entity"
+export WANDB_PROJECT=haco
+export WANDB_MODE=online
+```
+
+Set the data and model paths:
+
+```bash
 export HACO_DATASET_PATH=/path/to/lerobot_dataset
-export HACO_BASE_MODEL_PATH=/path/to/pretrained_base_checkpoint
-export HACO_VLM_MODEL_PATH=/path/to/vlm_backbone
+export HACO_BASE_MODEL_PATH="$PWD/checkpoints/base_model"
+export HACO_VLM_MODEL_PATH="$PWD/checkpoints/cosmos_reason2_2b"
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+```
+
+Check the configuration without starting a training job:
+
+```bash
 HACO_DRY_RUN=1 bash scripts/launch/haco/haco.sh
 ```
 
-Remove `HACO_DRY_RUN=1` to launch distributed training. Hardware and schedule
-defaults can be overridden with `HACO_GPUS_PER_NODE`,
-`HACO_PER_DEVICE_BATCH_SIZE`, `HACO_MAX_STEPS`, and related variables in
-`scripts/train/haco/run.sh`.
-
-## Evaluation and deployment
-
-Build an evaluation manifest:
+Start training:
 
 ```bash
-python -m scripts.inference.haco.manifest \
-  --dataset /path/to/lerobot_dataset \
-  --action-contract joint_compliance_delta \
-  --action-target q_compliance \
-  --output /tmp/haco_manifest.json
+bash scripts/launch/haco/haco.sh
 ```
 
-Serve a checkpoint over the SharpA WebSocket protocol:
+The default run uses 4 GPUs, a per-GPU batch size of 12, and 30,000 training
+steps. Checkpoints and W&B run files are written to `logs/haco/`.
+
+## Inference
+
+Start the policy server with a trained HACO checkpoint:
 
 ```bash
-HACO_REFERENCE_REPO="$PWD/third_party/Isaac-GR00T" \
-  bash scripts/deploy/haco/launch.sh \
-  /path/to/checkpoint /path/to/vlm_backbone
+source third_party/Isaac-GR00T/.venv/bin/activate
+CUDA_VISIBLE_DEVICES=0 bash scripts/deploy/haco/launch.sh \
+  /path/to/haco-checkpoint \
+  "$PWD/checkpoints/cosmos_reason2_2b"
 ```
 
-Model weights and data are not distributed by this source repository. Their
-licenses and access conditions must be handled separately.
-
-## Verification
-
-```bash
-python -m compileall -q dexterity scripts
-find scripts -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
-HACO_REFERENCE_REPO="$PWD/third_party/Isaac-GR00T" \
-  bash scripts/deploy/haco/launch.sh \
-  /path/to/haco-checkpoint /path/to/vlm-backbone --validate-only
-```
+The server listens on port `5500`. Its health endpoint is
+`http://localhost:5500/healthz`, and inference uses the binary MessagePack
+WebSocket endpoint `ws://localhost:5500/infer`.
 
 ## License
 
-Apache License 2.0. See `LICENSE`. Third-party components and external model
-weights remain subject to their own licenses.
+HACO is released under the [Apache License 2.0](LICENSE).
