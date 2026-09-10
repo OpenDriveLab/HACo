@@ -1,8 +1,7 @@
 """Contract-aware processor for HACO.
 
-The processor never derives compliance commands by addition.  Its action
-modality configuration must point directly at q_teleop for compliance targets
-or q_exe_next for nominal targets.
+The action modality points directly at ``q_cmp`` for the learned compliant
+command or ``q_obs`` for the next observed hand state.
 """
 
 from __future__ import annotations
@@ -273,14 +272,16 @@ class HacoProcessor(Gr00tN1d7Processor):
                 f"{self.action_contract.name} {requirement} delta-q modality groups; "
                 f"got {keys}"
             )
-        if self.action_target == "q_compliance":
-            q_keys = [key for key in keys if "q_teleop" in key]
+        if self.action_target == "q_cmp":
+            q_keys = [
+                key for key in keys if "q_cmp" in key or "q_teleop" in key
+            ]
             if len(q_keys) != 2:
                 raise ValueError(
-                    "q_compliance must be read directly from left/right q_teleop"
+                    "q_cmp must be read directly from left/right q_cmp"
                 )
-        elif any("q_teleop" in key for key in keys):
-            raise ValueError("q_nominal must not use q_teleop action groups")
+        elif any("q_cmp" in key or "q_teleop" in key for key in keys):
+            raise ValueError("q_obs must not use q_cmp action groups")
 
     @staticmethod
     def _as_tensor(value: Any) -> torch.Tensor:

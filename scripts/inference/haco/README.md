@@ -8,8 +8,8 @@ steps of the first chunk as its complete active clean RTC prefix.
 
 Only the first chunk's 40 generated steps and the second chunk's 30-step postfix
 enter metrics. The copied 10-step prefix is always excluded. Main control
-metrics use the direct q branch (`q_compliance` for HACO and
-`ac_wo_intent_sup`, `q_nominal` for `ac_wo_active_comp`); `delta_q` is never
+metrics use the direct q branch (`q_cmp` for HACO and
+`ac_wo_intent_sup`, `q_obs` for `ac_wo_active_comp`); `delta_q` is never
 added to q. Joint-contract delta MAE is decoded to
 physical radians before aggregation.
 
@@ -18,7 +18,7 @@ Create a frozen checkpoint-30000 manifest with:
 ```bash
 python -m scripts.inference.haco.manifest \
   --action-contract joint_compliance_delta \
-  --action-target q_compliance \
+  --action-target q_cmp \
   --output /path/to/eval/manifest.json
 ```
 

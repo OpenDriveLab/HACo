@@ -8,7 +8,7 @@ PYTHON_BIN="${PYTHON_BIN:-${ISAAC_GROOT_DIR}/.venv/bin/python}"
 
 : "${HACO_EXPERIMENT_ID:?set one frozen HACO experiment id}"
 
-HACO_DATASET_PATH="${HACO_DATASET_PATH:-${HACO_ROOT}/datasets/postrain/ur-sharpa/lerobot_data/unscrew_cap}"
+HACO_DATASET_PATH="${HACO_DATASET_PATH:-${HACO_ROOT}/dataset/sample}"
 HACO_DATASET_PATHS_JSON="${HACO_DATASET_PATHS_JSON:-}"
 HACO_MULTITASK_PROFILE="${HACO_MULTITASK_PROFILE:-}"
 HACO_MULTITASK_NORMALIZATION_DIR="${HACO_MULTITASK_NORMALIZATION_DIR:-}"
@@ -16,7 +16,7 @@ HACO_BASE_MODEL_PATH="${HACO_BASE_MODEL_PATH:-${HACO_ROOT}/checkpoints/base_mode
 HACO_VLM_MODEL_PATH="${HACO_VLM_MODEL_PATH:-${HACO_ROOT}/checkpoints/cosmos_reason2_2b}"
 HACO_MODALITY_CONFIG_PATH="${HACO_MODALITY_CONFIG_PATH:-${HACO_ROOT}/scripts/train/haco/modality.py}"
 HACO_EMBODIMENT_TAG="${HACO_EMBODIMENT_TAG:-real_r1_pro_sharpa_absolute_eef}"
-HACO_RUN_NAME="${HACO_RUN_NAME:-posttrain-ur_unscrew_cap-haco-${HACO_EXPERIMENT_ID}-official-1n4g-bs12-gbs48-30k-seed42-${RUN_DATETIME:-$(date -u +%Y%m%d_%H%M%S)}}"
+HACO_RUN_NAME="${HACO_RUN_NAME:-haco-${HACO_EXPERIMENT_ID}-1n4g-bs12-gbs48-30k-seed42-${RUN_DATETIME:-$(date -u +%Y%m%d_%H%M%S)}}"
 HACO_RUN_ROOT="${HACO_RUN_ROOT:-${HACO_ROOT}/logs/haco/${HACO_RUN_NAME}}"
 HACO_OUTPUT_DIR="${HACO_OUTPUT_DIR:-${HACO_RUN_ROOT}/checkpoints}"
 

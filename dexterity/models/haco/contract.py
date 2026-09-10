@@ -13,7 +13,6 @@ from typing import Final
 
 import torch
 
-
 HACO_ACTION_HORIZON: Final = 40
 HACO_EXPERT_ACTION_DIM: Final = 132
 HACO_WRIST_DIM: Final = 18
@@ -41,12 +40,12 @@ class HacoActionContract:
     def __post_init__(self) -> None:
         if self.name not in ACTION_CONTRACT_NAMES:
             raise ValueError(f"unknown HACO action contract {self.name!r}")
-        if self.q_semantics not in ("q_compliance", "q_nominal"):
+        if self.q_semantics not in ("q_cmp", "q_obs"):
             raise ValueError(f"invalid q semantics {self.q_semantics!r}")
         if self.has_delta_q != (self.name == "joint_compliance_delta"):
             raise ValueError("delta-q is exclusive to joint_compliance_delta")
-        if self.has_delta_q and self.q_semantics != "q_compliance":
-            raise ValueError("joint delta-q supervision requires q_compliance")
+        if self.has_delta_q and self.q_semantics != "q_cmp":
+            raise ValueError("joint delta-q supervision requires q_cmp")
 
     @property
     def action_target(self) -> str:
@@ -101,14 +100,16 @@ class HacoActionContract:
     ) -> None:
         expected = (*prefix, width)
         if tuple(value.shape) != expected:
-            raise ValueError(f"{name} must have shape {expected}, got {tuple(value.shape)}")
+            raise ValueError(
+                f"{name} must have shape {expected}, got {tuple(value.shape)}"
+            )
 
     def pack(
         self,
         wrist: torch.Tensor,
         *,
-        q_compliance: torch.Tensor | None = None,
-        q_nominal: torch.Tensor | None = None,
+        q_cmp: torch.Tensor | None = None,
+        q_obs: torch.Tensor | None = None,
         delta_q: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Pack only the components owned by this contract.
@@ -123,11 +124,11 @@ class HacoActionContract:
             wrist, name="wrist", prefix=prefix, width=self.wrist_dim
         )
         q_by_name = {
-            "q_compliance": q_compliance,
-            "q_nominal": q_nominal,
+            "q_cmp": q_cmp,
+            "q_obs": q_obs,
         }
         q = q_by_name[self.q_semantics]
-        wrong_q = q_nominal if self.q_semantics == "q_compliance" else q_compliance
+        wrong_q = q_obs if self.q_semantics == "q_cmp" else q_cmp
         if q is None:
             raise ValueError(f"{self.name} requires {self.q_semantics}")
         if wrong_q is not None:
@@ -181,17 +182,17 @@ class HacoActionContract:
 HACO_ACTION_CONTRACTS: Final = {
     "joint_compliance_delta": HacoActionContract(
         name="joint_compliance_delta",
-        q_semantics="q_compliance",
+        q_semantics="q_cmp",
         has_delta_q=True,
     ),
     "compliance_only": HacoActionContract(
         name="compliance_only",
-        q_semantics="q_compliance",
+        q_semantics="q_cmp",
         has_delta_q=False,
     ),
     "nominal_only": HacoActionContract(
         name="nominal_only",
-        q_semantics="q_nominal",
+        q_semantics="q_obs",
         has_delta_q=False,
     ),
 }

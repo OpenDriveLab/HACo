@@ -191,7 +191,7 @@ class HacoSensorStore:
             "tactile_wrench_valid": tactile_valid.T,
             "tactile_deformation": deformation,
             "tactile_deformation_valid": deformation_valid,
-            # HACO predicts wrist/q_exe/delta_q (106-D) from the 150-D disk
+            # HACO predicts wrist/q_cmp/delta_q (106-D) from the 150-D disk
             # action. Exact anchors guarantee that every transition is valid.
             "action_component_valid": np.ones((len(future), 106), dtype=bool),
         }

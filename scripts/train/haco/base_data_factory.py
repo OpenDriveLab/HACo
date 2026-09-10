@@ -28,8 +28,8 @@ ROLLOUT_HACO_ACTION_GROUPS = (
 ROLLOUT_COMMAND_GROUPS = (
     "left_wrist_eef",
     "right_wrist_eef",
-    "left_hand_q_teleop",
-    "right_hand_q_teleop",
+    "left_hand_q_cmp",
+    "right_hand_q_cmp",
 )
 
 

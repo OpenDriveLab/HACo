@@ -30,7 +30,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--action-target", required=True, choices=("q_compliance", "q_nominal")
+        "--action-target", required=True, choices=("q_cmp", "q_obs")
     )
     parser.add_argument("--checkpoint-step", type=int, default=30_000)
     parser.add_argument("--seed", type=int, default=42)

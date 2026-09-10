@@ -80,11 +80,7 @@ class HacoExperiment:
 
     @property
     def action_target(self) -> str:
-        return (
-            "q_nominal"
-            if self.action_contract == "nominal_only"
-            else "q_compliance"
-        )
+        return "q_obs" if self.action_contract == "nominal_only" else "q_cmp"
 
     @property
     def semantic_action_dim(self) -> int:
@@ -347,13 +343,13 @@ def validate_training_dataset(path_value: str | Path) -> Path:
             f"dataset must expose only the complete train split {expected_range}"
         )
     if info.get("action_order") != [
-        "wrist_exe_next18",
-        "q_exe_next44",
-        "q_teleop44",
+        "wrist_obs18",
+        "q_obs44",
+        "q_cmp44",
         "delta_q44",
     ]:
         raise ValueError("dataset has the wrong 150-D action order")
-    if info.get("delta_q_definition") != "q_teleop - q_exe_next":
+    if info.get("delta_q_definition") != "q_cmp - q_obs":
         raise ValueError("dataset has the wrong delta_q definition")
     required = (
         path / "meta" / "stats.json",

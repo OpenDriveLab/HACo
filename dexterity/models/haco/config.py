@@ -20,10 +20,13 @@ from .rtc import (
     validate_rtc_configuration,
 )
 
-
 HACO_MODEL_TYPE = "Haco"
 HACO_CHECKPOINT_SCHEMA = "haco.checkpoint.v1"
 HACO_OFFICIAL_BASE = "checkpoints/base_model"
+
+# Checkpoints through 500k used the original internal labels.  Normalize them
+# at load time so their weights remain usable with the public q_cmp/q_obs API.
+LEGACY_ACTION_TARGETS = {"q_compliance": "q_cmp", "q_nominal": "q_obs"}
 
 SENSOR_ENCODER_MODES = (
     "none",
@@ -81,14 +84,14 @@ class HacoConfig(Gr00tN1d7Config):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.pop("model_type", None)
         kwargs.pop("architectures", None)
+        action_target = kwargs.pop("action_target", None)
+        action_target = LEGACY_ACTION_TARGETS.get(action_target, action_target)
         kwargs["max_action_dim"] = HACO_EXPERT_ACTION_DIM
         kwargs["action_horizon"] = HACO_ACTION_HORIZON
         kwargs["use_relative_action"] = False
 
         custom: dict[str, Any] = {
-            "haco_schema": kwargs.pop(
-                "haco_schema", HACO_CHECKPOINT_SCHEMA
-            ),
+            "haco_schema": kwargs.pop("haco_schema", HACO_CHECKPOINT_SCHEMA),
             "official_base_checkpoint": kwargs.pop(
                 "official_base_checkpoint", HACO_OFFICIAL_BASE
             ),
@@ -97,31 +100,23 @@ class HacoConfig(Gr00tN1d7Config):
             "physical_integration": kwargs.pop(
                 "physical_integration", "physcross_gated"
             ),
-            "action_contract": kwargs.pop(
-                "action_contract", "joint_compliance_delta"
-            ),
-            "action_target": kwargs.pop("action_target", None),
+            "action_contract": kwargs.pop("action_contract", "joint_compliance_delta"),
+            "action_target": action_target,
             "camera_mode": kwargs.pop("camera_mode", "three"),
             "force_history_length": int(kwargs.pop("force_history_length", 9)),
             "force_joint_count": int(kwargs.pop("force_joint_count", 44)),
             "force_input_dim": int(kwargs.pop("force_input_dim", 1)),
             "joint_history_dim": int(kwargs.pop("joint_history_dim", 64)),
-            "tactile_history_length": int(
-                kwargs.pop("tactile_history_length", 9)
-            ),
+            "tactile_history_length": int(kwargs.pop("tactile_history_length", 9)),
             "tactile_finger_count": int(kwargs.pop("tactile_finger_count", 10)),
             "tactile_wrench_dim": int(kwargs.pop("tactile_wrench_dim", 6)),
             "tactile_image_size": int(kwargs.pop("tactile_image_size", 240)),
             "sensor_encoder_dim": int(kwargs.pop("sensor_encoder_dim", 256)),
             "sensor_encoder_heads": int(kwargs.pop("sensor_encoder_heads", 8)),
             "sensor_encoder_layers": int(kwargs.pop("sensor_encoder_layers", 2)),
-            "tune_sensor_encoders": bool(
-                kwargs.pop("tune_sensor_encoders", True)
-            ),
+            "tune_sensor_encoders": bool(kwargs.pop("tune_sensor_encoders", True)),
             "control_flow_weight": float(kwargs.pop("control_flow_weight", 1.0)),
-            "delta_q_flow_weight": float(
-                kwargs.pop("delta_q_flow_weight", 0.5)
-            ),
+            "delta_q_flow_weight": float(kwargs.pop("delta_q_flow_weight", 0.5)),
             "delta_q_normalized_clip": float(
                 kwargs.pop("delta_q_normalized_clip", 5.0)
             ),
@@ -138,16 +133,12 @@ class HacoConfig(Gr00tN1d7Config):
                 )
             ),
             "rtc_inference_prefix_steps": int(
-                kwargs.pop(
-                    "rtc_inference_prefix_steps", RTC_INFERENCE_PREFIX_STEPS
-                )
+                kwargs.pop("rtc_inference_prefix_steps", RTC_INFERENCE_PREFIX_STEPS)
             ),
             "rtc_training_prefix_weights": kwargs.pop(
                 "rtc_training_prefix_weights", None
             ),
-            "rtc_training_sampling": kwargs.pop(
-                "rtc_training_sampling", "categorical"
-            ),
+            "rtc_training_sampling": kwargs.pop("rtc_training_sampling", "categorical"),
         }
         if custom["rtc_training_prefix_weights"] is None:
             custom["rtc_training_prefix_weights"] = default_prefix_weights(
@@ -172,9 +163,7 @@ class HacoConfig(Gr00tN1d7Config):
 
     def _validate_haco(self) -> None:
         if self.haco_schema != HACO_CHECKPOINT_SCHEMA:
-            raise ValueError(
-                f"haco_schema must be {HACO_CHECKPOINT_SCHEMA!r}"
-            )
+            raise ValueError(f"haco_schema must be {HACO_CHECKPOINT_SCHEMA!r}")
         if self.sensor_encoder_mode not in SENSOR_ENCODER_MODES:
             raise ValueError(
                 f"sensor_encoder_mode must be one of {SENSOR_ENCODER_MODES}"
@@ -184,9 +173,7 @@ class HacoConfig(Gr00tN1d7Config):
                 f"physical_integration must be one of {PHYSICAL_INTEGRATIONS}"
             )
         if self.action_contract not in ACTION_CONTRACT_NAMES:
-            raise ValueError(
-                f"action_contract must be one of {ACTION_CONTRACT_NAMES}"
-            )
+            raise ValueError(f"action_contract must be one of {ACTION_CONTRACT_NAMES}")
         contract = self.action_contract_spec
         if self.action_target is None:
             self.action_target = contract.action_target

@@ -32,25 +32,25 @@ STATE_GROUPS = (
     "right_hand_joints",
 )
 WRIST_GROUPS = ("left_wrist_eef", "right_wrist_eef")
-Q_COMPLIANCE_GROUPS = ("left_hand_q_teleop", "right_hand_q_teleop")
-Q_NOMINAL_GROUPS = ("left_hand_joints", "right_hand_joints")
+Q_CMP_GROUPS = ("left_hand_q_cmp", "right_hand_q_cmp")
+Q_OBS_GROUPS = ("left_hand_q_obs", "right_hand_q_obs")
 DELTA_Q_GROUPS = ("left_hand_delta_q", "right_hand_delta_q")
 
 
 def action_groups(experiment: HacoExperiment) -> tuple[str, ...]:
     if experiment.action_contract == "joint_compliance_delta":
-        return (*WRIST_GROUPS, *Q_COMPLIANCE_GROUPS, *DELTA_Q_GROUPS)
+        return (*WRIST_GROUPS, *Q_CMP_GROUPS, *DELTA_Q_GROUPS)
     if experiment.action_contract == "compliance_only":
-        return (*WRIST_GROUPS, *Q_COMPLIANCE_GROUPS)
+        return (*WRIST_GROUPS, *Q_CMP_GROUPS)
     if experiment.action_contract == "nominal_only":
-        return (*WRIST_GROUPS, *Q_NOMINAL_GROUPS)
+        return (*WRIST_GROUPS, *Q_OBS_GROUPS)
     raise AssertionError(experiment.action_contract)
 
 
 def control_groups(experiment: HacoExperiment) -> tuple[str, ...]:
-    if experiment.action_target == "q_compliance":
-        return (*WRIST_GROUPS, *Q_COMPLIANCE_GROUPS)
-    return (*WRIST_GROUPS, *Q_NOMINAL_GROUPS)
+    if experiment.action_target == "q_cmp":
+        return (*WRIST_GROUPS, *Q_CMP_GROUPS)
+    return (*WRIST_GROUPS, *Q_OBS_GROUPS)
 
 
 class HacoShardedSingleStepDataset(HacoBaseShardedSingleStepDataset):

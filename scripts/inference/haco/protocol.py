@@ -31,9 +31,9 @@ class FormalEvalProtocol:
 
     def __post_init__(self) -> None:
         contracts = {
-            "joint_compliance_delta": "q_compliance",
-            "compliance_only": "q_compliance",
-            "nominal_only": "q_nominal",
+            "joint_compliance_delta": "q_cmp",
+            "compliance_only": "q_cmp",
+            "nominal_only": "q_obs",
         }
         expected_target = contracts.get(self.action_contract)
         if expected_target is None:

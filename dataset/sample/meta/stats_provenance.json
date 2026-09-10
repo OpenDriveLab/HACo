@@ -1,0 +1,20 @@
+{
+  "schema": "sharpa.control_sensors.train_only_stats_provenance.v2",
+  "split": "train",
+  "train_episode_indices": [
+    0
+  ],
+  "train_episode_count": 1,
+  "sensor_input_sha256": "829d45664e166dccd51973637298df973e1845b6667802aaef30cdd66e26d801",
+  "statistics_method": {
+    "mean_std_min_max": "exact_streaming",
+    "q01_q99": "deterministic_uniform_global_row_sample",
+    "maximum_quantile_sample_rows": 200000
+  },
+  "sampling": {
+    "state": "exact_anchor_rows",
+    "action": "all_40_canonical_action_rows_per_exact_anchor",
+    "relative_action": "relative_to_anchor_wrist",
+    "sensor": "all_9_history_rows_per_exact_anchor"
+  }
+}

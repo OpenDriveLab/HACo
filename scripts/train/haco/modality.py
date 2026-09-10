@@ -42,8 +42,8 @@ def _action_groups() -> tuple[list[str], list[str]]:
         return (
             [
                 *wrist,
-                "left_hand_q_teleop",
-                "right_hand_q_teleop",
+                "left_hand_q_cmp",
+                "right_hand_q_cmp",
                 "left_hand_delta_q",
                 "right_hand_delta_q",
             ],
@@ -51,12 +51,12 @@ def _action_groups() -> tuple[list[str], list[str]]:
         )
     if EXPERIMENT.action_contract == "compliance_only":
         return (
-            [*wrist, "left_hand_q_teleop", "right_hand_q_teleop"],
+            [*wrist, "left_hand_q_cmp", "right_hand_q_cmp"],
             [],
         )
     if EXPERIMENT.action_contract == "nominal_only":
         return (
-            [*wrist, "left_hand_joints", "right_hand_joints"],
+            [*wrist, "left_hand_q_obs", "right_hand_q_obs"],
             [],
         )
     raise AssertionError(EXPERIMENT.action_contract)

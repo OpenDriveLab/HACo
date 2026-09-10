@@ -153,25 +153,29 @@ def decode_haco_action(
     )
     if action_contract == "nominal_only":
         left_q_candidates = (
+            "left_hand_q_obs",
+            "action.left_hand_q_obs",
             "left_hand_joints",
             "action.left_hand_joints",
         )
         right_q_candidates = (
+            "right_hand_q_obs",
+            "action.right_hand_q_obs",
             "right_hand_joints",
             "action.right_hand_joints",
         )
     else:
         left_q_candidates = (
+            "left_hand_q_cmp",
+            "action.left_hand_q_cmp",
             "left_hand_q_teleop",
             "action.left_hand_q_teleop",
-            "left_hand_joints",
-            "action.left_hand_joints",
         )
         right_q_candidates = (
+            "right_hand_q_cmp",
+            "action.right_hand_q_cmp",
             "right_hand_q_teleop",
             "action.right_hand_q_teleop",
-            "right_hand_joints",
-            "action.right_hand_joints",
         )
     control = np.concatenate(
         (
@@ -226,9 +230,9 @@ class HacoOpenLoopEvalCallback(OpenLoopEvalCallback):
     @property
     def action_target(self) -> str:
         return (
-            "q_nominal"
+            "q_obs"
             if self.action_contract_name == "nominal_only"
-            else "q_compliance"
+            else "q_cmp"
         )
 
     def prediction_for_unapply(self, action: torch.Tensor) -> torch.Tensor:
@@ -238,7 +242,7 @@ class HacoOpenLoopEvalCallback(OpenLoopEvalCallback):
 
     def control_norm(self, action: torch.Tensor) -> torch.Tensor:
         # The main 62-D command is executable as-is. In particular, joint mode
-        # never adds delta_q to the q_compliance branch.
+        # executes q_cmp directly; delta_q defines q_cmp - q_obs.
         return action[..., :HACO_CONTROL_DIM]
 
     def target_control_norm(

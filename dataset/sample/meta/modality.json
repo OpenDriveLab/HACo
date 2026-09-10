@@ -1,0 +1,94 @@
+{
+  "video": {
+    "ego_view": {
+      "original_key": "observation.images.ego_view",
+      "fps": 30,
+      "dataset_fps": 30,
+      "height": 720,
+      "width": 1280
+    },
+    "left_wrist_view": {
+      "original_key": "observation.images.left_wrist_view",
+      "fps": 30,
+      "dataset_fps": 30,
+      "height": 270,
+      "width": 480
+    },
+    "right_wrist_view": {
+      "original_key": "observation.images.right_wrist_view",
+      "fps": 30,
+      "dataset_fps": 30,
+      "height": 270,
+      "width": 480
+    }
+  },
+  "state": {
+    "left_wrist_eef": {
+      "original_key": "observation.state",
+      "start": 0,
+      "end": 9
+    },
+    "right_wrist_eef": {
+      "original_key": "observation.state",
+      "start": 9,
+      "end": 18
+    },
+    "left_hand_joints": {
+      "original_key": "observation.state",
+      "start": 18,
+      "end": 40
+    },
+    "right_hand_joints": {
+      "original_key": "observation.state",
+      "start": 40,
+      "end": 62
+    }
+  },
+  "action": {
+    "left_wrist_eef": {
+      "original_key": "action",
+      "start": 0,
+      "end": 9
+    },
+    "right_wrist_eef": {
+      "original_key": "action",
+      "start": 9,
+      "end": 18
+    },
+    "left_hand_q_obs": {
+      "original_key": "action",
+      "start": 18,
+      "end": 40
+    },
+    "right_hand_q_obs": {
+      "original_key": "action",
+      "start": 40,
+      "end": 62
+    },
+    "left_hand_q_cmp": {
+      "original_key": "action",
+      "start": 62,
+      "end": 84
+    },
+    "right_hand_q_cmp": {
+      "original_key": "action",
+      "start": 84,
+      "end": 106
+    },
+    "left_hand_delta_q": {
+      "original_key": "action",
+      "start": 106,
+      "end": 128
+    },
+    "right_hand_delta_q": {
+      "original_key": "action",
+      "start": 128,
+      "end": 150
+    }
+  },
+  "annotation": {
+    "language.task_description": {
+      "original_key": "annotation.language.task_description"
+    }
+  }
+}

@@ -11,20 +11,22 @@ checkpoints.
 from __future__ import annotations
 
 import argparse
-from copy import deepcopy
 import dataclasses
 import json
 import logging
-from pathlib import Path
 import socket
 import sys
 import tempfile
 import time
-from typing import Any, Mapping, cast
+from collections.abc import Mapping
+from copy import deepcopy
+from pathlib import Path
+from typing import Any, cast
 
 import numpy as np
 import torch
 
+from dexterity.deploy.models.haco.contract import EXPERIMENT_CONTRACTS
 from dexterity.deploy.models.haco.runtime import (
     LANGUAGE_KEY,
     STATE_KEYS,
@@ -35,7 +37,6 @@ from dexterity.deploy.models.haco.runtime import (
     trim_or_pad,
     write_json,
 )
-from dexterity.deploy.models.haco.contract import EXPERIMENT_CONTRACTS
 from dexterity.deploy.template.protocol import (
     ACTION_SCHEMA,
     METADATA_FORMAT_SCHEMA,
@@ -51,7 +52,6 @@ from dexterity.runtime.sharpa62 import (
     direct_eef_interface_metadata,
     model_joints_to_wire,
 )
-
 
 LOGGER = logging.getLogger("haco_sharpa62_server")
 CHECKPOINT_SCHEMA = "haco.checkpoint.v1"
@@ -73,6 +73,28 @@ ACTION_KEYS = {
     "joint_compliance_delta": (
         "left_wrist_eef",
         "right_wrist_eef",
+        "left_hand_q_cmp",
+        "right_hand_q_cmp",
+        "left_hand_delta_q",
+        "right_hand_delta_q",
+    ),
+    "compliance_only": (
+        "left_wrist_eef",
+        "right_wrist_eef",
+        "left_hand_q_cmp",
+        "right_hand_q_cmp",
+    ),
+    "nominal_only": (
+        "left_wrist_eef",
+        "right_wrist_eef",
+        "left_hand_q_obs",
+        "right_hand_q_obs",
+    ),
+}
+LEGACY_ACTION_KEYS = {
+    "joint_compliance_delta": (
+        "left_wrist_eef",
+        "right_wrist_eef",
         "left_hand_q_teleop",
         "right_hand_q_teleop",
         "left_hand_delta_q",
@@ -86,6 +108,7 @@ ACTION_KEYS = {
     ),
     "nominal_only": STATE_KEYS,
 }
+LEGACY_ACTION_TARGETS = {"q_compliance": "q_cmp", "q_nominal": "q_obs"}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -116,11 +139,13 @@ class HacoCheckpointSpec:
         return self.sensor_encoder_mode in ("tactile_only", "separate", "fused")
 
     @classmethod
-    def from_checkpoint(cls, checkpoint: Path) -> "HacoCheckpointSpec":
+    def from_checkpoint(cls, checkpoint: Path) -> HacoCheckpointSpec:
         required = ("config.json", "processor_config.json", "statistics.json")
         missing = [name for name in required if not (checkpoint / name).is_file()]
         if missing:
-            raise FileNotFoundError(f"HACO checkpoint is missing {missing}: {checkpoint}")
+            raise FileNotFoundError(
+                f"HACO checkpoint is missing {missing}: {checkpoint}"
+            )
         config = json.loads((checkpoint / "config.json").read_text(encoding="utf-8"))
         if config.get("model_type") != MODEL_TYPE:
             raise ValueError(f"checkpoint model_type must be {MODEL_TYPE!r}")
@@ -129,7 +154,9 @@ class HacoCheckpointSpec:
         contract = get_action_contract(str(config.get("action_contract")))
         rtc_steps = int(config.get("rtc_inference_prefix_steps", -1))
         if int(config.get("action_horizon", -1)) != ACTION_HORIZON:
-            raise ValueError(f"HACO deployment requires action_horizon={ACTION_HORIZON}")
+            raise ValueError(
+                f"HACO deployment requires action_horizon={ACTION_HORIZON}"
+            )
         if int(config.get("max_action_dim", -1)) != EXPERT_ACTION_DIM:
             raise ValueError(
                 f"HACO deployment requires max_action_dim={EXPERT_ACTION_DIM}"
@@ -143,7 +170,10 @@ class HacoCheckpointSpec:
             sensor_encoder_mode=str(config.get("sensor_encoder_mode", "")),
             physical_integration=str(config.get("physical_integration", "")),
             action_contract=contract.name,
-            action_target=str(config.get("action_target", "")),
+            action_target=LEGACY_ACTION_TARGETS.get(
+                str(config.get("action_target", "")),
+                str(config.get("action_target", "")),
+            ),
             camera_mode=str(config.get("camera_mode", "")),
             rtc_steps=rtc_steps,
         )
@@ -181,8 +211,11 @@ class HacoCheckpointSpec:
         if int(processor.get("max_action_dim", -1)) != EXPERT_ACTION_DIM:
             raise ValueError("checkpoint processor action carrier is not 132-D")
         for field in (
-            "experiment_id", "sensor_encoder_mode", "physical_integration",
-            "action_contract", "camera_mode",
+            "experiment_id",
+            "sensor_encoder_mode",
+            "physical_integration",
+            "action_contract",
+            "camera_mode",
         ):
             if str(processor.get(field)) != str(getattr(spec, field)):
                 raise ValueError(f"checkpoint model/processor {field} mismatch")
@@ -223,8 +256,10 @@ def _state_62(obs: SharpAObservation) -> np.ndarray:
     if state is None or not state["valid"]:
         raise ValueError("HACO requires a valid current robot state")
     values = (
-        state["left_wrist"]["eef"], state["right_wrist"]["eef"],
-        state["hand_joint"]["left"], state["hand_joint"]["right"],
+        state["left_wrist"]["eef"],
+        state["right_wrist"]["eef"],
+        state["hand_joint"]["left"],
+        state["hand_joint"]["right"],
     )
     if any(value is None for value in values):
         raise ValueError("HACO state requires both wrist EEFs and both hands")
@@ -274,13 +309,20 @@ class HacoRequestBuilder:
     def _rtc_steps(self, obs: SharpAObservation) -> int:
         feedback = obs["execution_feedback"]
         if self._last_action is None:
-            if feedback["last_action_id"] is not None or feedback["executed_steps"] != 0:
-                raise ValueError("first HACO request after reset requires empty feedback")
+            if (
+                feedback["last_action_id"] is not None
+                or feedback["executed_steps"] != 0
+            ):
+                raise ValueError(
+                    "first HACO request after reset requires empty feedback"
+                )
             return 0
         if not feedback["success"]:
             raise ValueError("cannot continue RTC after failed action execution")
         if feedback["last_action_id"] != self._last_action_id:
-            raise ValueError("execution_feedback.last_action_id does not match cached chunk")
+            raise ValueError(
+                "execution_feedback.last_action_id does not match cached chunk"
+            )
         expected = self._execute_stop - self._execute_start - self.spec.rtc_steps
         if feedback["executed_steps"] != expected:
             raise ValueError(
@@ -311,8 +353,12 @@ class HacoRequestBuilder:
             tau, valid = _sensor_rows(obs, "tau", right_first=False)
             if tau.shape != (9, 44):
                 raise ValueError(f"HACO tau history must be (9,44), got {tau.shape}")
-            request["force_history"] = tau[:, DEPLOY_TO_MODEL_JOINT].T.astype(np.float32)
-            request["force_history_valid"] = valid[:, DEPLOY_TO_MODEL_JOINT].T.astype(bool)
+            request["force_history"] = tau[:, DEPLOY_TO_MODEL_JOINT].T.astype(
+                np.float32
+            )
+            request["force_history_valid"] = valid[:, DEPLOY_TO_MODEL_JOINT].T.astype(
+                bool
+            )
         if self.spec.needs_tactile:
             wrench, valid = _sensor_rows(obs, "wrench", right_first=True)
             if wrench.shape != (9, 10, 6):
@@ -340,7 +386,9 @@ class HacoRequestBuilder:
                 )
             request.update(
                 {
-                    "tactile_wrench_history": wrench.transpose(1, 0, 2).astype(np.float32),
+                    "tactile_wrench_history": wrench.transpose(1, 0, 2).astype(
+                        np.float32
+                    ),
                     "tactile_wrench_valid": valid.T.astype(bool),
                     "tactile_deformation": deformation_value,
                     "tactile_deformation_valid": deformation_valid,
@@ -465,15 +513,27 @@ def load_policy(
         failures.append(f"video={modality['video'].modality_keys}")
     if tuple(modality["state"].modality_keys) != STATE_KEYS:
         failures.append(f"state={modality['state'].modality_keys}")
-    if tuple(modality["action"].modality_keys) != spec.action_keys:
+    runtime_action_keys = tuple(modality["action"].modality_keys)
+    accepted_action_keys = (
+        spec.action_keys,
+        LEGACY_ACTION_KEYS[spec.action_contract],
+    )
+    if runtime_action_keys not in accepted_action_keys:
         failures.append(f"action={modality['action'].modality_keys}")
     if len(modality["action"].delta_indices) != ACTION_HORIZON:
         failures.append("action horizon is not 40")
     for field in (
-        "experiment_id", "sensor_encoder_mode", "physical_integration",
-        "action_contract", "action_target", "camera_mode",
+        "experiment_id",
+        "sensor_encoder_mode",
+        "physical_integration",
+        "action_contract",
+        "action_target",
+        "camera_mode",
     ):
-        if str(getattr(policy.model.config, field)) != str(getattr(spec, field)):
+        runtime_value = str(getattr(policy.model.config, field))
+        if field == "action_target":
+            runtime_value = LEGACY_ACTION_TARGETS.get(runtime_value, runtime_value)
+        if runtime_value != str(getattr(spec, field)):
             failures.append(f"runtime {field} mismatch")
     if failures:
         owner.cleanup()
@@ -488,6 +548,13 @@ def _decoded_group(action: Mapping[str, Any], key: str) -> np.ndarray:
     if value.ndim != 2 or value.shape[0] != ACTION_HORIZON:
         raise ValueError(f"decoded action {key!r} has invalid shape {value.shape}")
     return value
+
+
+def _decoded_group_any(action: Mapping[str, Any], *keys: str) -> np.ndarray:
+    for key in keys:
+        if key in action:
+            return _decoded_group(action, key)
+    raise KeyError(f"decoded action is missing all accepted keys: {keys}")
 
 
 class HacoPolicy:
@@ -537,8 +604,11 @@ class HacoPolicy:
             "haco": {},
         }
         for key in (
-            "force_history", "force_history_valid", "tactile_wrench_history",
-            "tactile_wrench_valid", "tactile_deformation",
+            "force_history",
+            "force_history_valid",
+            "tactile_wrench_history",
+            "tactile_wrench_valid",
+            "tactile_deformation",
             "tactile_deformation_valid",
         ):
             if key in request:
@@ -554,35 +624,51 @@ class HacoPolicy:
         decoded, info = self.policy.get_action(observation, options=options)
         normalized = info.pop("normalized_action")
         if not torch.is_tensor(normalized) or tuple(normalized.shape) != (
-            1, ACTION_HORIZON, EXPERT_ACTION_DIM
+            1,
+            ACTION_HORIZON,
+            EXPERT_ACTION_DIM,
         ):
             raise ValueError("HACO normalized prediction must be [1,40,132]")
         q_keys = self.spec.action_keys[2:4]
+        legacy_q_keys = LEGACY_ACTION_KEYS[self.spec.action_contract][2:4]
         action_model = np.concatenate(
-            tuple(_decoded_group(decoded, key) for key in (*STATE_KEYS[:2], *q_keys)),
+            (
+                _decoded_group(decoded, STATE_KEYS[0]),
+                _decoded_group(decoded, STATE_KEYS[1]),
+                _decoded_group_any(decoded, q_keys[0], legacy_q_keys[0]),
+                _decoded_group_any(decoded, q_keys[1], legacy_q_keys[1]),
+            ),
             axis=-1,
         )
-        action_wire = self.contract.action_to_deploy(trim_or_pad(action_model, ACTION_HORIZON))
+        action_wire = self.contract.action_to_deploy(
+            trim_or_pad(action_model, ACTION_HORIZON)
+        )
         if prefix_steps and self.last_action is not None:
             expected = self.last_action[-prefix_steps:]
-            if not np.allclose(action_wire[:prefix_steps], expected, rtol=1e-4, atol=1e-5):
+            if not np.allclose(
+                action_wire[:prefix_steps], expected, rtol=1e-4, atol=1e-5
+            ):
                 raise RuntimeError("decoded RTC prefix changed across HACO chunks")
         diagnostics: dict[str, Any] = {
             "model": "haco",
             "experiment_id": self.spec.experiment_id,
             "action_contract": self.spec.action_contract,
             "action_target": self.spec.action_target,
-            "execution_semantics": "direct_main_q",
-            "delta_q_execution": "never_added",
+            "execution_semantics": "direct_q_cmp",
+            "delta_q_definition": "q_cmp - q_obs",
             "rtc_prefix_steps": np.asarray(prefix_steps, dtype=np.int64),
             "elapsed_s": np.asarray(time.perf_counter() - started, dtype=np.float32),
         }
         if self.spec.action_contract == "joint_compliance_delta":
             delta_model = np.concatenate(
-                tuple(_decoded_group(decoded, key) for key in self.spec.action_keys[4:6]),
+                tuple(
+                    _decoded_group(decoded, key) for key in self.spec.action_keys[4:6]
+                ),
                 axis=-1,
             )
-            diagnostics["delta_q_diagnostic_rad_40x44"] = model_joints_to_wire(delta_model)
+            diagnostics["delta_q_diagnostic_rad_40x44"] = model_joints_to_wire(
+                delta_model
+            )
         self.last_normalized = normalized.detach().cpu().clone()
         self.last_action = action_wire.copy()
         chunk_id = self.request_index
@@ -685,8 +771,8 @@ class HacoAdapter(BaseSharpAPolicyAdapter):
             "physical_integration": self.spec.physical_integration,
             "action_contract": self.spec.action_contract,
             "action_target": self.spec.action_target,
-            "execution_semantics": "direct_main_q",
-            "delta_q_execution": "never_added",
+            "execution_semantics": "direct_q_cmp",
+            "delta_q_definition": "q_cmp - q_obs",
             "execution": {
                 "frequency_hz": ACTION_HZ,
                 "action_length": ACTION_HORIZON,
@@ -735,7 +821,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     if runtime_spec != spec:
         raise RuntimeError("HACO checkpoint changed while loading")
-    output_dir = Path(args.output_dir) if args.output_dir else checkpoint / "deploy_haco"
+    output_dir = (
+        Path(args.output_dir) if args.output_dir else checkpoint / "deploy_haco"
+    )
     output_dir = output_dir.expanduser().absolute()
     write_json(
         output_dir / "server_metadata.json",
@@ -749,8 +837,8 @@ def main(argv: list[str] | None = None) -> int:
             "host": socket.gethostname(),
             "cuda_available": torch.cuda.is_available(),
             "cuda_device_count": torch.cuda.device_count(),
-            "execution_semantics": "direct_main_q",
-            "delta_q_execution": "never_added",
+            "execution_semantics": "direct_q_cmp",
+            "delta_q_definition": "q_cmp - q_obs",
         },
     )
     adapter: BaseSharpAPolicyAdapter = HacoAdapter(

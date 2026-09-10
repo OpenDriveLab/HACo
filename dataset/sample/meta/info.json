@@ -1,0 +1,215 @@
+{
+  "schema": "haco.lerobot.v1",
+  "codebase_version": "v2.0",
+  "robot_type": "ur_sharpa",
+  "embodiment_tag": "real_r1_pro_sharpa_absolute_eef",
+  "fps": 30,
+  "state_dim": 62,
+  "state_order": [
+    "wrist_obs18",
+    "q_obs44"
+  ],
+  "action_dim": 150,
+  "action_order": [
+    "wrist_obs18",
+    "q_obs44",
+    "q_cmp44",
+    "delta_q44"
+  ],
+  "delta_q_definition": "q_cmp - q_obs",
+  "execution_identity": "q_obs + delta_q == q_cmp",
+  "wrist_pose9": "[x,y,z,r00,r10,r20,r01,r11,r21]",
+  "joint_order": [
+    "left_index_MCP_FE",
+    "left_index_MCP_AA",
+    "left_index_PIP",
+    "left_index_DIP",
+    "left_middle_MCP_FE",
+    "left_middle_MCP_AA",
+    "left_middle_PIP",
+    "left_middle_DIP",
+    "left_pinky_CMC",
+    "left_pinky_MCP_FE",
+    "left_pinky_MCP_AA",
+    "left_pinky_PIP",
+    "left_pinky_DIP",
+    "left_ring_MCP_FE",
+    "left_ring_MCP_AA",
+    "left_ring_PIP",
+    "left_ring_DIP",
+    "left_thumb_CMC_FE",
+    "left_thumb_CMC_AA",
+    "left_thumb_MCP_FE",
+    "left_thumb_MCP_AA",
+    "left_thumb_IP",
+    "right_index_MCP_FE",
+    "right_index_MCP_AA",
+    "right_index_PIP",
+    "right_index_DIP",
+    "right_middle_MCP_FE",
+    "right_middle_MCP_AA",
+    "right_middle_PIP",
+    "right_middle_DIP",
+    "right_pinky_CMC",
+    "right_pinky_MCP_FE",
+    "right_pinky_MCP_AA",
+    "right_pinky_PIP",
+    "right_pinky_DIP",
+    "right_ring_MCP_FE",
+    "right_ring_MCP_AA",
+    "right_ring_PIP",
+    "right_ring_DIP",
+    "right_thumb_CMC_FE",
+    "right_thumb_CMC_AA",
+    "right_thumb_MCP_FE",
+    "right_thumb_MCP_AA",
+    "right_thumb_IP"
+  ],
+  "finger_order": [
+    "right_pinky",
+    "right_ring",
+    "right_middle",
+    "right_index",
+    "right_thumb",
+    "left_pinky",
+    "left_ring",
+    "left_middle",
+    "left_index",
+    "left_thumb"
+  ],
+  "wrench_order": [
+    "fx",
+    "fy",
+    "fz",
+    "tx",
+    "ty",
+    "tz"
+  ],
+  "tau_role": "measured hand-joint torque; never an action target",
+  "features": {
+    "action": {
+      "dtype": "float32",
+      "shape": [
+        150
+      ]
+    },
+    "anchor_valid": {
+      "dtype": "bool",
+      "shape": [
+        1
+      ]
+    },
+    "annotation.language.task_description": {
+      "dtype": "int64",
+      "shape": [
+        1
+      ]
+    },
+    "episode_index": {
+      "dtype": "int64",
+      "shape": [
+        1
+      ]
+    },
+    "frame_index": {
+      "dtype": "int64",
+      "shape": [
+        1
+      ]
+    },
+    "observation.images.ego_view": {
+      "dtype": "video",
+      "names": [
+        "height",
+        "width",
+        "channel"
+      ],
+      "shape": [
+        720,
+        1280,
+        3
+      ],
+      "video_info": {
+        "has_audio": false,
+        "video.codec": "h264",
+        "video.fps": 30,
+        "video.is_depth_map": false,
+        "video.pix_fmt": "yuv420p"
+      }
+    },
+    "observation.images.left_wrist_view": {
+      "dtype": "video",
+      "names": [
+        "height",
+        "width",
+        "channel"
+      ],
+      "shape": [
+        270,
+        480,
+        3
+      ],
+      "video_info": {
+        "has_audio": false,
+        "video.codec": "h264",
+        "video.fps": 30,
+        "video.is_depth_map": false,
+        "video.pix_fmt": "yuv420p"
+      }
+    },
+    "observation.images.right_wrist_view": {
+      "dtype": "video",
+      "names": [
+        "height",
+        "width",
+        "channel"
+      ],
+      "shape": [
+        270,
+        480,
+        3
+      ],
+      "video_info": {
+        "has_audio": false,
+        "video.codec": "h264",
+        "video.fps": 30,
+        "video.is_depth_map": false,
+        "video.pix_fmt": "yuv420p"
+      }
+    },
+    "observation.state": {
+      "dtype": "float32",
+      "shape": [
+        62
+      ]
+    },
+    "task_index": {
+      "dtype": "int64",
+      "shape": [
+        1
+      ]
+    },
+    "timestamp": {
+      "dtype": "float64",
+      "shape": [
+        1
+      ]
+    }
+  },
+  "chunks_size": 1000,
+  "data_path": "data/chunk-{episode_chunk:03d}/episode_{episode_index:06d}.parquet",
+  "video_path": "videos/chunk-{episode_chunk:03d}/{video_key}/episode_{episode_index:06d}.mp4",
+  "sensor_path": "sensors/episodes/episode_{episode_index:06d}.npz",
+  "total_chunks": 1,
+  "total_episodes": 1,
+  "total_frames": 60,
+  "total_tasks": 1,
+  "split_counts": {
+    "train": 1,
+    "val": 0,
+    "test": 0
+  },
+  "splits": {
+    "train": "0:1"
+  }
+}

@@ -20,29 +20,28 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import imageio.v2 as imageio  # noqa: E402
-import numpy as np  # noqa: E402
+import imageio.v2 as imageio
+import numpy as np
 
-from dexterity.rendering.action_kinematics import (  # noqa: E402
+from dexterity.rendering.action_kinematics import (
     JOINT_COUNT,
     action_62d_to_hand138,
     add_delta_q,
     hip_anchors_to_chunk0,
     keypoint_displacement,
 )
-from dexterity.rendering.hand_skeleton import render_hand_skeleton  # noqa: E402
-from dexterity.runtime.sharpa62 import (  # noqa: E402
+from dexterity.rendering.hand_skeleton import render_hand_skeleton
+from dexterity.runtime.sharpa62 import (
     MODEL_JOINT_ORDER,
     MODEL_TACTILE_ORDER,
 )
-
 
 DELTA_Q_FIXED_LIMIT_RAD = 0.20
 TACTILE_FORCE_FIXED_LIMIT_N = 25.0
@@ -63,16 +62,13 @@ def _optional(archive, key: str, dtype) -> np.ndarray | None:
 def _require_steps(name: str, array: np.ndarray | None, steps: int) -> None:
     if array is not None and array.shape[0] != steps:
         raise ValueError(
-            f"{name} must have {steps} steps to match the action, "
-            f"got {array.shape[0]}"
+            f"{name} must have {steps} steps to match the action, got {array.shape[0]}"
         )
 
 
 def _write_video(path: Path, frames: np.ndarray, fps: int) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    imageio.mimsave(
-        str(path), list(frames), fps=fps, codec="libx264", macro_block_size=1
-    )
+    imageio.mimsave(str(path), list(frames), fps=fps, codec="libx264")
 
 
 def _render_side(
@@ -121,9 +117,7 @@ def _render_side(
             "has_prediction": wrench_pred is not None,
         }
         if wrench_pred is not None and wrench_pred_valid is not None:
-            report["wrench"]["pred_valid_ratio"] = float(
-                np.mean(wrench_pred_valid)
-            )
+            report["wrench"]["pred_valid_ratio"] = float(np.mean(wrench_pred_valid))
 
     frames = render_hand_skeleton(
         hand,
@@ -132,8 +126,8 @@ def _render_side(
         title_prefix=title_prefix,
         units_label="m",
         overlay_hand_138d=overlay_hand,
-        primary_label="q_exe (solid blue)",
-        overlay_label="q_cmd = q_exe + delta_q (dashed orange)",
+        primary_label="q_obs (solid blue)",
+        overlay_label="q_cmp = q_obs + delta_q (dashed orange)",
         joint_slider_values=delta_q_44d,
         joint_slider_names=MODEL_JOINT_ORDER if delta_q_44d is not None else None,
         joint_slider_fixed_limit=(
@@ -192,7 +186,10 @@ def main() -> None:
         ("wrench_valid_pred", wrench_valid_pred),
     ):
         _require_steps(name, array, steps)
-    for name, array in (("delta_q_44d_gt", gt_delta_q), ("delta_q_44d_pred", pred_delta_q)):
+    for name, array in (
+        ("delta_q_44d_gt", gt_delta_q),
+        ("delta_q_44d_pred", pred_delta_q),
+    ):
         if array is not None and array.shape[-1] != JOINT_COUNT:
             raise ValueError(
                 f"{name} must have shape [T,{JOINT_COUNT}], got {array.shape}"
