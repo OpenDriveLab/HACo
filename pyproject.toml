@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "haco-policy"
+version = "0.1.0"
+description = "HACO policy for contact-rich bimanual dexterous manipulation"
+readme = "README.md"
+requires-python = ">=3.10,<3.12"
+license = {file = "LICENSE"}
+authors = [{name = "OpenDriveLab"}]
+dependencies = [
+  "accelerate",
+  "aiohttp",
+  "av",
+  "blessings",
+  "diffusers",
+  "dm-tree",
+  "flufl.lock",
+  "h5py",
+  "huggingface-hub",
+  "hydra-core",
+  "imageio",
+  "kornia",
+  "matplotlib",
+  "msgpack",
+  "numpy",
+  "omegaconf",
+  "opencv-python",
+  "pandas",
+  "pillow",
+  "pyarrow",
+  "pydantic>=2",
+  "pyyaml",
+  "torch",
+  "torchvision",
+  "tqdm",
+  "transformers==4.57.3",
+  "tokenizers==0.22.2",
+  "tyro",
+  "wandb",
+]
+
+[project.optional-dependencies]
+deployment = [
+  "dex-retargeting",
+]
+video = [
+  "decord",
+  "torchcodec",
+]
+tensorflow = [
+  "tensorflow",
+]
+dev = [
+  "pytest>=8",
+  "ruff>=0.15",
+]
+
+[tool.setuptools.packages.find]
+include = ["dexterity*", "scripts*"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --import-mode=importlib"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
