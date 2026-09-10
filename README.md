@@ -41,10 +41,40 @@ hf download nvidia/Cosmos-Reason2-2B \
   --local-dir checkpoints/cosmos_reason2_2b
 ```
 
-Training data must use the LeRobot format and include `meta/info.json` and
-`meta/modality.json`.
-
 ## Training
+
+### Prepare data
+
+The converter expects one directory per task and one directory per recorded
+episode:
+
+```text
+<raw-root>/<task>/<episode>/
+```
+
+Each episode contains the master timeline, UR state, SharpA joint/tactile
+signals, and the `ego`, `left_wrist`, and `right_wrist` camera streams. Convert
+a task with:
+
+```bash
+python -m scripts.data.posttrain.ur_sharpa.convert unscrew_cap \
+  --raw-root /path/to/raw_data \
+  --output-root "$PWD/datasets" \
+  --task-text "Unscrew the cap" \
+  --workers 4
+
+export HACO_DATASET_PATH="$PWD/datasets/unscrew_cap"
+```
+
+The command aligns all modalities at 30 Hz, writes the LeRobot Parquet,
+video, and sensor files, computes normalization statistics, and verifies the
+result. An existing converted dataset can be checked with:
+
+```bash
+python -m scripts.data.posttrain.ur_sharpa.verify "$HACO_DATASET_PATH"
+```
+
+### Configure Weights & Biases
 
 Log in to Weights & Biases and select the account or team that will own the
 run:
@@ -56,10 +86,11 @@ export WANDB_PROJECT=haco
 export WANDB_MODE=online
 ```
 
-Set the data and model paths:
+### Launch training
+
+Set the model paths and GPUs:
 
 ```bash
-export HACO_DATASET_PATH=/path/to/lerobot_dataset
 export HACO_BASE_MODEL_PATH="$PWD/checkpoints/base_model"
 export HACO_VLM_MODEL_PATH="$PWD/checkpoints/cosmos_reason2_2b"
 export CUDA_VISIBLE_DEVICES=0,1,2,3
