@@ -142,6 +142,10 @@ The two videos are written to `outputs/quick_test/viz__gt_hand_motion.mp4` and
 `outputs/quick_test/viz__pred_hand_motion.mp4`. Each frame shows the hand
 skeletons on the left and tactile force/torque plus `delta_q` on the right.
 
+Example output from the included sample and the 500k checkpoint:
+[GT](assets/haco_500k_unscrew_cap_gt.mp4) ·
+[Prediction](assets/haco_500k_unscrew_cap_pred.mp4)
+
 ## License
 
 HACO is released under the [Apache License 2.0](LICENSE).
