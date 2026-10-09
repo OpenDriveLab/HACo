@@ -68,8 +68,10 @@ hf download nvidia/Cosmos-Reason2-2B --local-dir checkpoints/cosmos_reason2_2b
 
 ### Dataset
 
-Data follows the **LeRobot v2** format at **30 Hz**.
-See [dataset/sample](dataset/sample) for a two-second unscrew-cap example.
+HACo uses **LeRobot v2** datasets at **30 Hz**. The included
+[dataset/sample](dataset/sample) contains a two-second unscrew-cap example.
+
+**File organization**
 
 ```text
 dataset/sample/
@@ -96,6 +98,12 @@ dataset/sample/
     └── source.json                      # Sample source episode and frame range
 ```
 
+**Modalities**
+
+Parquet files store state and action sequences; NPZ files store haptic
+measurements; MP4 files store the three RGB views. The `meta/` directory
+provides task instructions, field layouts, and normalization statistics.
+
 | Modality | Shape per frame | Format | Description |
 | :--- | :---: | :---: | :--- |
 | State | `62` | Parquet | Wrist poses and observed joint positions |
@@ -107,19 +115,20 @@ dataset/sample/
 | Language | — | JSONL | Task instruction in `meta/tasks.jsonl` |
 
 Each action targets the next frame, with `delta_q = q_cmp - q_obs`.
-Field layouts, sensor ordering, and normalization statistics are provided in
-[dataset/sample/meta](dataset/sample/meta).
+See [dataset/sample/meta/modality.json](dataset/sample/meta/modality.json) for
+the field layout and [info.json](dataset/sample/meta/info.json) for joint and
+finger ordering.
 
-Generate the ground-truth visualization:
+**Visualization**
+
+Visualize 40 frames from the sample dataset. Blue shows `q_obs`; dashed orange
+shows `q_cmp`. Force/torque gauges show the measured fingertip wrench.
 
 ```bash
 python -m dexterity.rendering.cli.visualize \
   --dataset dataset/sample --start-frame 8 --frames 40 --out-dir outputs/sample_gt
 # Output: outputs/sample_gt/viz__gt_hand_motion.mp4
 ```
-
-The example below shows 40 frames at 30 Hz. Blue shows `q_obs`; dashed orange
-shows `q_cmp`. Force/torque gauges show the measured fingertip wrench.
 
 <video src="https://github.com/user-attachments/assets/7ac60c0e-92f3-40c3-a5ef-bc344b55381a" controls width="100%"></video>
 
@@ -154,17 +163,19 @@ Start the policy server with a trained HACo checkpoint:
 bash scripts/deploy/haco/launch.sh /path/to/haco-checkpoint
 ```
 
-The server accepts an observation dict containing the task instruction, three
-RGB views, wrist poses, hand-joint positions, haptic signals, and execution
-feedback over `ws://localhost:5500/infer` (binary MessagePack).
-The input dict is defined by
-[`SharpAObservation`](dexterity/deploy/template/protocol.py#L164); see
-[`quick_test.py`](scripts/inference/haco/quick_test.py#L100) for a concrete example.
+The server receives and returns dicts over `ws://localhost:5500/infer`, encoded
+as binary MessagePack.
 
-The output dict is defined by
-[`SharpAPolicyAction`](dexterity/deploy/template/protocol.py#L231).
-It contains 40-frame action chunks at 30 Hz: `action.left_wrist.eef` and
-`action.right_wrist.eef` have shape `(40, 9)`; `action.hand_joint.left` and
-`action.hand_joint.right` have shape `(40, 22)` and contain the compliant joint
-commands (`q_cmp`). The `execution` field specifies which part of the chunk to
-execute. See the [deployment guide](scripts/deploy/haco/README.md) for server options.
+**Input** ([`SharpAObservation`](dexterity/deploy/template/protocol.py#L164)):
+`prompt` contains the task instruction; `image` contains ego, left-wrist, and
+right-wrist RGB views; `state.current` contains wrist poses `(9,)` and hand-joint
+positions `(22,)` for each hand. `sensor` contains `tau`, `wrench`, and
+`deformation`, with current measurements, required history, timestamps, and
+validity masks. `execution_feedback` reports execution of the previous chunk.
+
+**Output** ([`SharpAPolicyAction`](dexterity/deploy/template/protocol.py#L231)):
+`action` contains a 40-frame chunk at 30 Hz. `left_wrist.eef` and
+`right_wrist.eef` are absolute wrist poses `(40, 9)`;
+`hand_joint.left` and `hand_joint.right` are compliant joint commands
+(`q_cmp`) `(40, 22)`. `execution` specifies the frequency and which frames to
+execute.
