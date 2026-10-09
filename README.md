@@ -40,7 +40,7 @@
 - We formulate active compliance learning from regulated demonstrations, combining controller-executable compliant actions, compliant-intent supervision, and the Compliance Grounding Module for haptic-conditioned action generation.
 - We introduce a real-world dexterous force benchmark spanning multi-contact friction, tangential interaction, fragile curved-surface contact, rotational torque, and deformable-object manipulation.
 
-<video src="https://github.com/user-attachments/assets/b666cf3d-e2ec-40cf-8a04-2a562434f3da" controls width="100%"></video>
+![HACo teaser](assets/haco_teaser.png)
 
 ## Get Started
 
@@ -125,7 +125,7 @@ python -m dexterity.rendering.cli.visualize \
 # Output: outputs/sample_gt/viz__gt_hand_motion.mp4
 ```
 
-<video src="https://github.com/user-attachments/assets/c343b5c9-0aa4-4819-9110-d61758365897" controls width="100%"></video>
+![Dataset sample visualization](assets/dataset_sample.png)
 
 ### Training
 
