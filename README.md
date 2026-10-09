@@ -14,10 +14,10 @@
 
 <p align="center">
   <a href="https://arxiv.org/abs/2609.36596"><img src="https://img.shields.io/badge/arXiv-2609.36596-b31b1b" alt="arXiv"></a>
+  <a href="https://opendrivelab.github.io/Haco-Page/"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
   <img src="https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white" alt="Python 3.10">
   <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-green" alt="Apache 2.0 License"></a>
-  <a href="https://opendrivelab.github.io/Haco-Page/"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
 </p>
 
 **HACo** learns active compliance for dexterous manipulation by combining
