@@ -85,22 +85,26 @@ Field layouts, sensor ordering, and normalization statistics are provided in
 
 ### Training
 
-Weights & Biases is disabled by default. Optionally enable local logging before
-starting training:
+Weights & Biases logging is online by default:
+
+```bash
+wandb login
+export WANDB_PROJECT=haco
+export WANDB_MODE=online
+```
+
+To disable online Weights & Biases logging and save logs locally:
 
 ```bash
 export WANDB_MODE=offline
 ```
 
-For online logging, run `wandb login` and set `WANDB_MODE=online` instead.
-
 ```bash
+# Default: 4 GPUs, batch size 12 per GPU, 30k steps.
+# Outputs are saved to logs/haco/; model paths use the download locations above.
 export HACO_DATASET_PATH=/path/to/your/lerobot_dataset
 bash scripts/launch/haco/haco.sh
 ```
-
-The default run uses 4 GPUs, batch size 12 per GPU, and 30,000 steps, with
-outputs saved to `logs/haco/`. Model paths default to the download locations above.
 
 ### Inference
 
