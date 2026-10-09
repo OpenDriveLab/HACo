@@ -114,11 +114,6 @@ provides task instructions, field layouts, and normalization statistics.
 | RGB | `H × W × 3` | MP4 | Ego, left wrist, and right wrist views |
 | Language | — | JSONL | Task instruction in `meta/tasks.jsonl` |
 
-Each action targets the next frame, with `delta_q = q_cmp - q_obs`.
-See [dataset/sample/meta/modality.json](dataset/sample/meta/modality.json) for
-the field layout and [info.json](dataset/sample/meta/info.json) for joint and
-finger ordering.
-
 **Visualization**
 
 Visualize 40 frames from the sample dataset. Blue shows `q_obs`; dashed orange
