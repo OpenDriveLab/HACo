@@ -97,7 +97,7 @@ dataset/sample/
 | Joint torque | `44` | NPZ | Measured hand-joint torque |
 | Tactile wrench | `10 × 6` | NPZ | 3D force and 3D torque at each fingertip |
 | Tactile deformation | `10 × 240 × 240` | NPZ | One uint8 deformation map per fingertip |
-| RGB | `H × W × 3` per camera | MP4 | Ego, left wrist, and right wrist views |
+| RGB | `H × W × 3` | MP4 | Ego, left wrist, and right wrist views |
 | Language | — | JSONL | Task instruction in `meta/tasks.jsonl` |
 
 Each action targets the next frame, with `delta_q = q_cmp - q_obs`.
