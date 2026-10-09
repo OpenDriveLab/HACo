@@ -99,7 +99,7 @@ dataset/sample/
 | Modality | Shape per frame | Format | Description |
 | :--- | :---: | :---: | :--- |
 | State | `62` | Parquet | Wrist poses and observed joint positions |
-| Action | `150` | Parquet | Wrist poses + `q_obs` + `q_cmp` + `delta_q` |
+| Action | `150` | Parquet | Wrist poses (18) + `q_obs` (44) + `q_cmp` (44) + `delta_q` (44) |
 | Joint torque | `44` | NPZ | Measured hand-joint torque |
 | Tactile wrench | `10 × 6` | NPZ | 3D force and 3D torque at each fingertip |
 | Tactile deformation | `10 × 240 × 240` | NPZ | One uint8 deformation map per fingertip |
