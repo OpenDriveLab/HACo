@@ -114,3 +114,13 @@ bash scripts/deploy/haco/launch.sh \
 
 The server returns 40-frame action chunks over `ws://localhost:5500/infer`.
 See the [deployment guide](scripts/deploy/haco/README.md) for the client protocol.
+
+Unscrew-cap example with the 500k-step checkpoint:
+
+**Ground truth**
+
+<video src="https://github.com/user-attachments/assets/95b1ef64-15ff-490c-b7f6-aa3c19ff0a93" controls width="100%"></video>
+
+**Prediction**
+
+<video src="https://github.com/user-attachments/assets/9aa781b8-85bb-4db5-a65b-b9e9ae62f9a4" controls width="100%"></video>
