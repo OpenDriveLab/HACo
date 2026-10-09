@@ -1,4 +1,4 @@
-"""Render ground-truth hand motion directly from a HACo LeRobot episode."""
+"""Visualize hand motion and haptic signals from a HACo LeRobot episode."""
 
 from __future__ import annotations
 
