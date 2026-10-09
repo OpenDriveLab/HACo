@@ -90,15 +90,15 @@ dataset/sample/
     └── source.json                      # Sample source episode and frame range
 ```
 
-| Modality | Shape | Description |
-| --- | --- | --- |
-| State | `62` | Two wrist poses (18) and hand joint positions (44) |
-| Action | `150` | Wrist poses (18), observed joints (44), compliant joint commands (44), and their difference (44) |
-| Joint torque | `44` | Measured hand-joint torque |
-| Tactile wrench | `10 × 6` | Force and torque at each fingertip |
-| Tactile deformation | `10 × 240 × 240` | One uint8 deformation map per fingertip |
-| RGB | Three streams | Ego, left wrist, and right wrist cameras |
-| Language | Task description | Natural-language instruction |
+| Modality | Shape per frame | Format | Description |
+| :--- | :---: | :---: | :--- |
+| State | `62` | Parquet | Wrist poses and observed joint positions |
+| Action | `150` | Parquet | Wrist poses + `q_obs` + `q_cmp` + `delta_q` |
+| Joint torque | `44` | NPZ | Measured hand-joint torque |
+| Tactile wrench | `10 × 6` | NPZ | 3D force and 3D torque at each fingertip |
+| Tactile deformation | `10 × 240 × 240` | NPZ | One uint8 deformation map per fingertip |
+| RGB | `H × W × 3` per camera | MP4 | Ego, left wrist, and right wrist views |
+| Language | — | JSONL | Task instruction in `meta/tasks.jsonl` |
 
 Each action targets the next frame, with `delta_q = q_cmp - q_obs`.
 Field layouts, sensor ordering, and normalization statistics are provided in
