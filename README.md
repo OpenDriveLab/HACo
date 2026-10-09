@@ -62,12 +62,33 @@ hf download nvidia/Cosmos-Reason2-2B --local-dir checkpoints/cosmos_reason2_2b
 
 ### Dataset
 
-Data follows the **LeRobot v2** format at **30 Hz**: state and action sequences
-in Parquet, three RGB camera streams in MP4, haptic measurements in per-episode
-NPZ files, and task descriptions and metadata in `meta/`.
+Data follows the **LeRobot v2** format at **30 Hz**.
 See [dataset/sample](dataset/sample) for a two-second unscrew-cap example.
-Its source episode and frame range are recorded in
-[source.json](dataset/sample/meta/source.json).
+
+```text
+dataset/sample/
+├── data/chunk-000/                       # State and action sequences
+│   └── episode_000000.parquet
+├── sensors/episodes/                    # Haptic measurements
+│   └── episode_000000.npz
+├── videos/chunk-000/                     # Three synchronized RGB streams
+│   ├── observation.images.ego_view/
+│   │   └── episode_000000.mp4
+│   ├── observation.images.left_wrist_view/
+│   │   └── episode_000000.mp4
+│   └── observation.images.right_wrist_view/
+│       └── episode_000000.mp4
+└── meta/
+    ├── info.json                        # Dataset metadata
+    ├── episodes.jsonl                   # Episode metadata
+    ├── tasks.jsonl                      # Task descriptions
+    ├── modality.json                    # Input/output field layouts
+    ├── stats.json                       # State/action normalization
+    ├── relative_stats.json              # Relative-action normalization
+    ├── sensor_stats.json                # Sensor normalization
+    ├── stats_provenance.json            # Statistics provenance
+    └── source.json                      # Sample source episode and frame range
+```
 
 | Modality | Shape | Description |
 | --- | --- | --- |
