@@ -60,6 +60,13 @@ dev = [
 [tool.setuptools.packages.find]
 include = ["dexterity*", "scripts*"]
 
+[tool.setuptools.package-data]
+dexterity = [
+  "assets/sharpa-urdf/wave_01/*/*.urdf",
+  "assets/sharpa-urdf/*.txt",
+  "assets/sharpa-urdf/README.md",
+]
+
 [tool.ruff]
 line-length = 88
 target-version = "py311"

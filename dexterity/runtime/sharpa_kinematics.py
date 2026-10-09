@@ -12,7 +12,7 @@ import numpy as np
 SHARPA_URDF_DIR = Path(
     os.environ.get(
         "SHARPA_URDF_DIR",
-        Path(__file__).resolve().parents[2] / "third_party/sharpa-urdf",
+        Path(__file__).resolve().parents[1] / "assets/sharpa-urdf",
     )
 )
 SHARPA_CONFIG_DIR = SHARPA_URDF_DIR / "dex_retarget_configs"

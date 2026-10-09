@@ -10,7 +10,6 @@ dist/
 *.egg-info/
 
 checkpoints/
-third_party/sharpa-urdf/
 datasets/
 logs/
 outputs/

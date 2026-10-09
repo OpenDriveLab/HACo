@@ -113,8 +113,6 @@ Field layouts, sensor ordering, and normalization statistics are provided in
 Generate the ground-truth visualization:
 
 ```bash
-# Download the hand model assets once.
-git clone --depth 1 https://github.com/sharpa-robotics/sharpa-urdf-usd-xml.git third_party/sharpa-urdf
 python -m dexterity.rendering.cli.dataset_gt_video \
   --dataset dataset/sample --start-frame 8 --frames 40 --out-dir outputs/sample_gt
 # Output: outputs/sample_gt/viz__gt_hand_motion.mp4
