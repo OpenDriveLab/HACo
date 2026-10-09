@@ -85,19 +85,19 @@ Field layouts, sensor ordering, and normalization statistics are provided in
 
 ### Training
 
-Weights & Biases logging is online by default:
+Configure Weights & Biases:
 
 ```bash
+# Online logging (default).
 wandb login
 export WANDB_PROJECT=haco
 export WANDB_MODE=online
+
+# Alternatively, uncomment this line to save logs locally without online syncing.
+# export WANDB_MODE=offline
 ```
 
-To disable online Weights & Biases logging and save logs locally:
-
-```bash
-export WANDB_MODE=offline
-```
+Start training:
 
 ```bash
 # Default: 4 GPUs, batch size 12 per GPU, 30k steps.
