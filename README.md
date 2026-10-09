@@ -34,7 +34,7 @@ generation. On five real-world tasks involving friction, tangential forces,
 fragile surfaces, rotational torque, and deformable objects, HACo succeeds in
 83% of trials on average, compared with 35% for the strongest evaluated baseline.
 
-<video src="https://opendrivelab.github.io/Haco-Page/videos/hero/HACo_ICRA2027_demo_v26_green_georgia_ood.mp4" controls width="100%"></video>
+[Watch the demo video](https://opendrivelab.github.io/Haco-Page/)
 
 ## Get Started
 
