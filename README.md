@@ -40,11 +40,9 @@ fragile surfaces, rotational torque, and deformable objects, HACo succeeds in
 
 ### Setup
 
-Use Linux, Python 3.10, CUDA 12.8, and [uv](https://docs.astral.sh/uv/getting-started/installation/).
-FFmpeg is used to read and write videos.
+HACo was trained and tested with CUDA 12.8, Python 3.10, and PyTorch 2.7.1.
 
 ```bash
-sudo apt install ffmpeg
 git clone https://github.com/OpenDriveLab/HACo.git
 cd HACo
 git clone https://github.com/NVIDIA/Isaac-GR00T.git third_party/Isaac-GR00T
