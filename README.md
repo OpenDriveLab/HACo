@@ -36,9 +36,9 @@
 
 **Contributions:**
 
-- **Complementary haptic perception:** Fuses fingertip touch and joint torques to capture local contact and load propagation across the hand.
-- **Active compliance learning:** Learns executable compliant commands from regulated demonstrations, supported by auxiliary intent supervision and the Compliance Grounding Module (CGM).
-- **Real-world force benchmark:** Introduces a dexterous manipulation benchmark covering friction, tangential forces, fragile curved surfaces, rotational torque, and object deformation.
+- We develop complementary haptic perception that couples fingertip tactile sensing with joint-torque feedback to represent both local contact and loads transmitted through the articulated hand.
+- We formulate active compliance learning from regulated demonstrations, combining controller-executable compliant actions, compliant-intent supervision, and the Compliance Grounding Module for haptic-conditioned action generation.
+- We introduce a real-world dexterous force benchmark spanning multi-contact friction, tangential interaction, fragile curved-surface contact, rotational torque, and deformable-object manipulation.
 
 [Watch the demo video](https://opendrivelab.github.io/Haco-Page/)
 
