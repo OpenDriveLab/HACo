@@ -10,6 +10,7 @@ dist/
 *.egg-info/
 
 checkpoints/
+third_party/
 datasets/
 logs/
 outputs/

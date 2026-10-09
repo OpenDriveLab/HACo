@@ -72,6 +72,9 @@ def _load_sample(dataset: Path, anchor: int) -> tuple[dict, dict[str, np.ndarray
     ]
     wrench = sensor["tactile_wrench"][anchor - 8 : anchor + 1]
     wrench_valid = sensor["tactile_wrench_valid_mask"][anchor - 8 : anchor + 1]
+    # Dataset fingertips are right-first; public sensor pairs are left-first.
+    wrench = np.concatenate((wrench[:, 5:], wrench[:, :5]), axis=1)
+    wrench_valid = np.concatenate((wrench_valid[:, 5:], wrench_valid[:, :5]), axis=1)
     deformation = sensor["tactile_deformation"][anchor]
     deformation_valid = sensor["tactile_deformation_valid_mask"][anchor]
 

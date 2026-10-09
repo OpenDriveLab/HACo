@@ -40,7 +40,7 @@
 - We formulate active compliance learning from regulated demonstrations, combining controller-executable compliant actions, compliant-intent supervision, and the Compliance Grounding Module for haptic-conditioned action generation.
 - We introduce a real-world dexterous force benchmark spanning multi-contact friction, tangential interaction, fragile curved-surface contact, rotational torque, and deformable-object manipulation.
 
-[Watch the demo video](https://opendrivelab.github.io/Haco-Page/)
+[Watch the demo video](assets/HACo_readme.mp4)
 
 ## Get Started
 

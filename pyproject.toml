@@ -21,7 +21,7 @@ dependencies = [
   "h5py",
   "huggingface-hub",
   "hydra-core",
-  "imageio",
+  "imageio[ffmpeg]",
   "kornia",
   "matplotlib",
   "msgpack",
@@ -69,4 +69,4 @@ dexterity = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py311"
+target-version = "py310"
