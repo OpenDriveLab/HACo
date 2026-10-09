@@ -1,151 +1,116 @@
-# HACO
+<h1 align="center">HACo: Learning Haptic Active Compliance<br>for Force-Aware Dexterous Manipulation</h1>
 
-HACO is a vision-language-action policy for contact-rich bimanual dexterous
-manipulation. It conditions on three RGB views, robot state, joint torque,
-tactile deformation, tactile wrench, and a language instruction.
+<p align="center">
+  Naisheng Ye<sup>1,2,†</sup>, Yinzhe Zhou<sup>2,3</sup>, Junkai Zhao<sup>2</sup>, Yuhang Lu<sup>1,2</sup>,<br>
+  Checheng Yu<sup>1</sup>, Zhenjie Yang<sup>1</sup>, Pengwei Wang<sup>2</sup>, Hongyang Li<sup>1</sup>
+</p>
 
-![HACO overview](assets/haco_teaser.png)
+<p align="center">
+  <sup>1</sup>The University of Hong Kong &nbsp;
+  <sup>2</sup>Beijing Academy of Artificial Intelligence (BAAI) &nbsp;
+  <sup>3</sup>Johns Hopkins University<br>
+  <sup>†</sup>Work done during an internship at BAAI.
+</p>
 
-## Setup
+<p align="center">
+  <a href="https://arxiv.org/abs/2609.36596"><img src="https://img.shields.io/badge/arXiv-2609.36596-b31b1b" alt="arXiv"></a>
+  <img src="https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white" alt="Python 3.10">
+  <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-green" alt="Apache 2.0 License"></a>
+  <a href="https://opendrivelab.github.io/Haco-Page/"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
+</p>
 
-HACO requires Linux, Python 3.10, CUDA 12.8, Git LFS, and FFmpeg.
+**HACo** learns active compliance for dexterous manipulation by combining
+fingertip touch with joint-torque measurements. Contact-sensitive tasks require
+more than reproducing observed motion: the policy must adapt its commands to
+the forces acting on the hand. We collect demonstrations using teleoperation
+that regulates contact loads, then train HACo to predict the resulting
+compliant commands. The difference between commanded and observed joint
+positions supplies additional supervision for motion intent under contact.
+Our haptic representation combines fingertip deformation and wrench signals
+with torque feedback, capturing both local contact and loads transmitted
+through the hand. Gated cross-attention connects this representation to action
+generation. On five real-world tasks involving friction, tangential forces,
+fragile surfaces, rotational torque, and deformable objects, HACo succeeds in
+83% of trials on average, compared with 35% for the strongest evaluated baseline.
+
+[Watch the demo video](https://opendrivelab.github.io/Haco-Page/)
+
+## Get Started
+
+### Setup
+
+Use Linux, Python 3.10, CUDA 12.8, and [uv](https://docs.astral.sh/uv/getting-started/installation/).
+FFmpeg is used to read and write videos.
 
 ```bash
-sudo apt-get update && sudo apt-get install -y git-lfs ffmpeg
-git lfs install
-
+sudo apt install ffmpeg
 git clone https://github.com/OpenDriveLab/HACo.git
 cd HACo
-git clone --recurse-submodules https://github.com/NVIDIA/Isaac-GR00T.git \
-  third_party/Isaac-GR00T
-git -C third_party/Isaac-GR00T checkout \
-  4b1dca9d88d2a0b9ea5a65aa61c82ff89f5c4f0e
+git clone https://github.com/NVIDIA/Isaac-GR00T.git third_party/Isaac-GR00T
+git -C third_party/Isaac-GR00T checkout 4b1dca9d88d2a0b9ea5a65aa61c82ff89f5c4f0e
 git -C third_party/Isaac-GR00T submodule update --init --recursive
-
-curl -LsSf https://astral.sh/uv/install.sh | sh
-cd third_party/Isaac-GR00T
-uv sync --python 3.10
-cd ../..
-uv pip install --python third_party/Isaac-GR00T/.venv/bin/python -e '.[deployment]'
+uv sync --directory third_party/Isaac-GR00T --python 3.10
 source third_party/Isaac-GR00T/.venv/bin/activate
+uv pip install -e '.[deployment]'
 ```
 
-Download the pretrained base model and vision-language backbone:
+HACo initializes from GR00T N1.7. Cosmos-Reason2 is its internal vision-language
+backbone; the current loader also needs its files locally.
 
 ```bash
-mkdir -p checkpoints
 hf download nvidia/GR00T-N1.7-3B --local-dir checkpoints/base_model
-hf download nvidia/Cosmos-Reason2-2B \
-  --local-dir checkpoints/cosmos_reason2_2b
+hf download nvidia/Cosmos-Reason2-2B --local-dir checkpoints/cosmos_reason2_2b
 ```
 
-## Dataset
+### Dataset
 
-Training data uses the LeRobot v2 directory format at 30 Hz. A complete
-two-second example is included in `dataset/sample`; validate it with:
+Data follows the **LeRobot v2** format at **30 Hz**: state and action sequences
+in Parquet, three RGB camera streams in MP4, haptic measurements in per-episode
+NPZ files, and task descriptions and metadata in `meta/`.
+See [dataset/sample](dataset/sample) for an example.
+
+| Modality | Shape | Description |
+| --- | --- | --- |
+| State | `62` | Two wrist poses (18) and hand joint positions (44) |
+| Action | `150` | Wrist poses (18), observed joints (44), compliant joint commands (44), and their difference (44) |
+| Joint torque | `44` | Measured hand-joint torque |
+| Tactile wrench | `10 × 6` | Force and torque at each fingertip |
+| Tactile deformation | `10 × 240 × 240` | One uint8 deformation map per fingertip |
+| RGB | Three streams | Ego, left wrist, and right wrist cameras |
+| Language | Task description | Natural-language instruction |
+
+Each action targets the next frame, with `delta_q = q_cmp - q_obs`.
+Field layouts, sensor ordering, and normalization statistics are provided in
+[dataset/sample/meta](dataset/sample/meta).
+
+### Training
+
+Weights & Biases is disabled by default. Optionally enable local logging before
+starting training:
 
 ```bash
-python -m scripts.data.haco.validate_dataset dataset/sample
+export WANDB_MODE=offline
 ```
 
-Record the following values for every frame:
-
-| Data | Shape | Meaning |
-| --- | ---: | --- |
-| `observation.state` | `62` | current left/right wrist pose (18) and current hand state (44) |
-| `action` | `150` | `wrist_obs` (18), `q_obs` (44), `q_cmp` (44), `delta_q` (44) |
-| joint torque | `44` | measured hand-joint torque |
-| tactile wrench | `10 x 6` | `[Fx, Fy, Fz, Tx, Ty, Tz]` for ten fingertips |
-| tactile deformation | `10 x 240 x 240` | one uint8 deformation map per fingertip |
-| RGB video | three streams | ego, left wrist, and right wrist cameras |
-| language | one string per task | the instruction describing the demonstrated task |
-
-The action at row `t` describes the next observation: `q_obs` is the measured
-hand state at `t+1`, `q_cmp` is the compliant command learned by HACO, and
-
-```text
-delta_q = q_cmp - q_obs
-```
-
-The exact column slices, hand-joint order, fingertip order, video paths, sensor
-sidecar fields, and metadata files are defined by
-`dataset/sample/meta/info.json` and `dataset/sample/meta/modality.json`. Copy
-that schema for each task dataset and replace the sample values and prompt.
-Set `anchor_valid=true` only where eight earlier frames and 40 target frames
-exist, then compute the train-split normalization files and validate everything:
-
-```bash
-python -m scripts.data.haco.prepare_dataset /path/to/your/lerobot_dataset
-```
-
-## Training
-
-Configure the dataset and pretrained weights:
+For online logging, run `wandb login` and set `WANDB_MODE=online` instead.
 
 ```bash
 export HACO_DATASET_PATH=/path/to/your/lerobot_dataset
-export HACO_BASE_MODEL_PATH="$PWD/checkpoints/base_model"
-export HACO_VLM_MODEL_PATH="$PWD/checkpoints/cosmos_reason2_2b"
-export CUDA_VISIBLE_DEVICES=0,1,2,3
-```
-
-Configure Weights & Biases:
-
-```bash
-wandb login
-export WANDB_ENTITY=your-team
-export WANDB_PROJECT=haco
-export WANDB_MODE=online
-```
-
-Validate the complete launch configuration without starting training:
-
-```bash
-HACO_DRY_RUN=1 bash scripts/launch/haco/haco.sh
-```
-
-Start training:
-
-```bash
 bash scripts/launch/haco/haco.sh
 ```
 
-The default configuration uses four GPUs, batch size 12 per GPU, and 30,000
-steps. Checkpoints and W&B files are written to `logs/haco/`.
+The default run uses 4 GPUs, batch size 12 per GPU, and 30,000 steps, with
+outputs saved to `logs/haco/`. Model paths default to the download locations above.
 
-## Inference server
+### Inference
 
-Start the WebSocket policy server from a trained checkpoint:
-
-```bash
-CUDA_VISIBLE_DEVICES=0 bash scripts/deploy/haco/launch.sh \
-  /path/to/haco-checkpoint \
-  "$PWD/checkpoints/cosmos_reason2_2b"
-```
-
-The server exposes health at `http://localhost:5500/healthz`, metadata at
-`http://localhost:5500/metadata`, and binary MessagePack inference at
-`ws://localhost:5500/infer`.
-
-To check a checkpoint end to end, launch the server, send the included
-`unscrew_cap` sample, request one 40-frame action chunk, and render the GT and
-prediction videos:
+Start the policy server with a trained HACo checkpoint:
 
 ```bash
-python -m scripts.inference.haco.quick_test \
-  --checkpoint /path/to/haco-checkpoint \
-  --backbone "$PWD/checkpoints/cosmos_reason2_2b" \
-  --reference-repo "$PWD/third_party/Isaac-GR00T"
+bash scripts/deploy/haco/launch.sh \
+  /path/to/haco-checkpoint checkpoints/cosmos_reason2_2b
 ```
 
-The two videos are written to `outputs/quick_test/viz__gt_hand_motion.mp4` and
-`outputs/quick_test/viz__pred_hand_motion.mp4`. Each frame shows the hand
-skeletons on the left and tactile force/torque plus `delta_q` on the right.
-
-Example output from the included sample and the 500k checkpoint:
-[GT](assets/haco_500k_unscrew_cap_gt.mp4) ·
-[Prediction](assets/haco_500k_unscrew_cap_pred.mp4)
-
-## License
-
-HACO is released under the [Apache License 2.0](LICENSE).
+The server returns 40-frame action chunks over `ws://localhost:5500/infer`.
+See the [deployment guide](scripts/deploy/haco/README.md) for the client protocol.
