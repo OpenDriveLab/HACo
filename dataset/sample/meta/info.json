@@ -18,7 +18,7 @@
   ],
   "delta_q_definition": "q_cmp - q_obs",
   "execution_identity": "q_obs + delta_q == q_cmp",
-  "wrist_pose9": "[x,y,z,r00,r10,r20,r01,r11,r21]",
+  "wrist_pose9": "[x,y,z,r00,r10,r20,r01,r11,r21] canonical root-from-hand_C_MC",
   "joint_order": [
     "left_index_MCP_FE",
     "left_index_MCP_AA",
@@ -211,5 +211,7 @@
   },
   "splits": {
     "train": "0:1"
-  }
+  },
+  "wrist_source": "source dataset canonical_wrist_pose9; copied without additional transforms",
+  "wrist_transform_at_conversion": "none"
 }

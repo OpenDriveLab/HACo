@@ -68,7 +68,9 @@ hf download nvidia/Cosmos-Reason2-2B --local-dir checkpoints/cosmos_reason2_2b
 Data follows the **LeRobot v2** format at **30 Hz**: state and action sequences
 in Parquet, three RGB camera streams in MP4, haptic measurements in per-episode
 NPZ files, and task descriptions and metadata in `meta/`.
-See [dataset/sample](dataset/sample) for an example.
+See [dataset/sample](dataset/sample) for a two-second unscrew-cap example.
+Its source episode and frame range are recorded in
+[source.json](dataset/sample/meta/source.json).
 
 | Modality | Shape | Description |
 | --- | --- | --- |
@@ -115,12 +117,14 @@ bash scripts/deploy/haco/launch.sh \
 The server returns 40-frame action chunks over `ws://localhost:5500/infer`.
 See the [deployment guide](scripts/deploy/haco/README.md) for the client protocol.
 
-Unscrew-cap example with the 500k-step checkpoint:
+Open-loop example from the sample dataset, using checkpoint-500000.
+Both videos show the same 40 frames at 30 Hz. Blue shows `q_obs`; dashed
+orange shows `q_cmp`. Force/torque gauges show measured signals in both videos.
 
 **Ground truth**
 
-<video src="https://github.com/user-attachments/assets/95b1ef64-15ff-490c-b7f6-aa3c19ff0a93" controls width="100%"></video>
+<video src="https://github.com/user-attachments/assets/7ac60c0e-92f3-40c3-a5ef-bc344b55381a" controls width="100%"></video>
 
 **Prediction**
 
-<video src="https://github.com/user-attachments/assets/9aa781b8-85bb-4db5-a65b-b9e9ae62f9a4" controls width="100%"></video>
+<video src="https://github.com/user-attachments/assets/580bfd12-9820-4198-96a5-2fe465cfed02" controls width="100%"></video>

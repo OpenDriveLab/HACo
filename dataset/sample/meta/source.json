@@ -1,0 +1,22 @@
+{
+  "schema": "haco.sample_source.v1",
+  "dataset": "unscrew_cap",
+  "source_episode_index": 0,
+  "source_episode": "sample_0007",
+  "source_frame_start": 836,
+  "source_frame_stop_exclusive": 896,
+  "frames": 60,
+  "fps": 30,
+  "sample_frame_index": "source_frame_index - 836",
+  "wrist_rotation": "matrix_columns_0_and_1",
+  "additional_wrist_transform": false,
+  "inference_example": {
+    "checkpoint_id": "checkpoint-500000",
+    "sample_anchor": 8,
+    "action_frames": 40,
+    "source_action_frame_start": 844,
+    "source_action_frame_stop_exclusive": 884,
+    "predictions_reused": true
+  },
+  "source_action_sha256": "0128af418c8729344287c732ff09beff4f95410b1581f24b889f3d4351a2d7eb"
+}

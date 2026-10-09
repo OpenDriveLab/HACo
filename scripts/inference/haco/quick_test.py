@@ -255,7 +255,7 @@ def _render(result: dict, truth: dict[str, np.ndarray], output: Path) -> None:
             "--out-dir",
             str(output),
             "--fps",
-            "15",
+            "30",
         ],
         cwd=ROOT,
         check=True,

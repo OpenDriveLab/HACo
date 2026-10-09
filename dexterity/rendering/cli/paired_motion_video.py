@@ -42,6 +42,7 @@ from dexterity.runtime.sharpa62 import (
     MODEL_JOINT_ORDER,
     MODEL_TACTILE_ORDER,
 )
+from dexterity.runtime.sharpa_kinematics import SHARPA_URDF_DIR
 
 DELTA_Q_FIXED_LIMIT_RAD = 0.20
 TACTILE_FORCE_FIXED_LIMIT_N = 25.0
@@ -150,7 +151,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-npz", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
-    parser.add_argument("--fps", type=int, default=15)
+    parser.add_argument("--fps", type=int, default=30)
     args = parser.parse_args()
 
     with np.load(args.input_npz, allow_pickle=False) as archive:
@@ -206,6 +207,12 @@ def main() -> None:
         "fps": args.fps,
         "frames": steps,
         "chunk_size": chunk_size,
+        "kinematics": {
+            "backend": "sharpa_urdf",
+            "urdf_dir": str(SHARPA_URDF_DIR.resolve()),
+            "wrist_rotation": "matrix_columns_0_and_1",
+            "extra_wrist_transform": False,
+        },
         "layers": {
             "hand_skeleton": True,
             "delta_q": gt_delta_q is not None,
