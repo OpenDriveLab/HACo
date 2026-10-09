@@ -302,10 +302,24 @@ def _build_dex_retargeter(side: str, method: str):
                 "scaling_factor": 1.0,
             }
         )
-    cfg = RetargetingConfig.load_from_file(
-        str(SHARPA_CONFIG_DIR / f"sharpa_wave_{side}.yml"),
-        override=override,
-    )
+    config_path = SHARPA_CONFIG_DIR / f"sharpa_wave_{side}.yml"
+    if config_path.is_file():
+        cfg = RetargetingConfig.load_from_file(str(config_path), override=override)
+    else:
+        # The public SharpA assets contain the URDFs but no retargeting YAML.
+        # Match the original 21-link configuration without changing the model.
+        cfg = RetargetingConfig.from_dict(
+            {
+                "type": "position",
+                "urdf_path": f"wave_01/{side}_sharpa_wave/{side}_sharpa_wave.urdf",
+                "target_joint_names": None,
+                "target_link_names": SHARPA_TARGET_LINKS[side],
+                "target_link_human_indices": list(range(21)),
+                "add_dummy_free_joint": True,
+                "low_pass_alpha": 1,
+            },
+            override=override,
+        )
     return cfg, cfg.build()
 
 

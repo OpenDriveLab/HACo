@@ -110,6 +110,21 @@ Each action targets the next frame, with `delta_q = q_cmp - q_obs`.
 Field layouts, sensor ordering, and normalization statistics are provided in
 [dataset/sample/meta](dataset/sample/meta).
 
+Generate the ground-truth visualization:
+
+```bash
+# Download the hand model assets once.
+git clone --depth 1 https://github.com/sharpa-robotics/sharpa-urdf-usd-xml.git third_party/sharpa-urdf
+python -m dexterity.rendering.cli.dataset_gt_video \
+  --dataset dataset/sample --start-frame 8 --frames 40 --out-dir outputs/sample_gt
+# Output: outputs/sample_gt/viz__gt_hand_motion.mp4
+```
+
+The example below shows 40 frames at 30 Hz. Blue shows `q_obs`; dashed orange
+shows `q_cmp`. Force/torque gauges show the measured fingertip wrench.
+
+<video src="https://github.com/user-attachments/assets/7ac60c0e-92f3-40c3-a5ef-bc344b55381a" controls width="100%"></video>
+
 ### Training
 
 Configure Weights & Biases:
@@ -141,17 +156,17 @@ Start the policy server with a trained HACo checkpoint:
 bash scripts/deploy/haco/launch.sh /path/to/haco-checkpoint
 ```
 
-The server returns 40-frame action chunks over `ws://localhost:5500/infer`.
-See the [deployment guide](scripts/deploy/haco/README.md) for the client protocol.
+The server accepts an observation dict containing the task instruction, three
+RGB views, wrist poses, hand-joint positions, haptic signals, and execution
+feedback over `ws://localhost:5500/infer` (binary MessagePack).
+The input dict is defined by
+[`SharpAObservation`](dexterity/deploy/template/protocol.py#L164); see
+[`quick_test.py`](scripts/inference/haco/quick_test.py#L100) for a concrete example.
 
-Open-loop example from the sample dataset, using checkpoint-500000.
-Both videos show the same 40 frames at 30 Hz. Blue shows `q_obs`; dashed
-orange shows `q_cmp`. Force/torque gauges show measured signals in both videos.
-
-**Ground truth**
-
-<video src="https://github.com/user-attachments/assets/7ac60c0e-92f3-40c3-a5ef-bc344b55381a" controls width="100%"></video>
-
-**Prediction**
-
-<video src="https://github.com/user-attachments/assets/580bfd12-9820-4198-96a5-2fe465cfed02" controls width="100%"></video>
+The output dict is defined by
+[`SharpAPolicyAction`](dexterity/deploy/template/protocol.py#L231).
+It contains 40-frame action chunks at 30 Hz: `action.left_wrist.eef` and
+`action.right_wrist.eef` have shape `(40, 9)`; `action.hand_joint.left` and
+`action.hand_joint.right` have shape `(40, 22)` and contain the compliant joint
+commands (`q_cmp`). The `execution` field specifies which part of the chunk to
+execute. See the [deployment guide](scripts/deploy/haco/README.md) for server options.

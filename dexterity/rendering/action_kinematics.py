@@ -76,8 +76,8 @@ def action_62d_to_hand138(
     0 and 1. Pass them directly to FK; treating them as model rotation rows
     would transpose the wrist rotation. Missing robot assets or dependencies
     must raise rather than silently drawing a different hand model.
-    Set SHARPA_URDF_DIR to the asset directory with dex_retarget_configs and
-    wave_01 when those assets are outside the repository.
+    Set SHARPA_URDF_DIR to the asset directory containing wave_01 when those
+    assets are outside the repository.
     """
     action = np.asarray(action_62d, dtype=np.float32)
     if action.ndim != 2 or action.shape[-1] < ACTION_DIM:
