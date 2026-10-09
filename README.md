@@ -138,8 +138,7 @@ bash scripts/launch/haco/haco.sh
 Start the policy server with a trained HACo checkpoint:
 
 ```bash
-bash scripts/deploy/haco/launch.sh \
-  /path/to/haco-checkpoint checkpoints/cosmos_reason2_2b
+bash scripts/deploy/haco/launch.sh /path/to/haco-checkpoint
 ```
 
 The server returns 40-frame action chunks over `ws://localhost:5500/infer`.

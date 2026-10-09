@@ -12,8 +12,10 @@ The checkpoint owns the sensor, camera, physical-integration, action, and RTC
 contract. Every variant returns a directly executable `wrist18 + q44` action;
 `delta_q` is diagnostic and is never added to q.
 
-The standalone launcher accepts an explicit checkpoint directory and
-vision-language backbone directory. Each checkpoint must retain its own
+The standalone launcher accepts a checkpoint directory and defaults to the
+local backbone at `checkpoints/cosmos_reason2_2b`. Override the backbone with
+`HACO_VLM_MODEL_PATH` or an optional second positional argument.
+Each checkpoint must retain its own
 `config.json`, `processor_config.json`, `statistics.json`, and sharded
 safetensors index.
 
@@ -24,7 +26,6 @@ HACO_REFERENCE_REPO=third_party/Isaac-GR00T \
 CUDA_VISIBLE_DEVICES=0 \
 bash scripts/deploy/haco/launch.sh \
   /path/to/haco-checkpoint \
-  /path/to/vision-language-backbone \
   --validate-only
 ```
 

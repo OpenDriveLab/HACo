@@ -5,13 +5,17 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 REFERENCE_REPO="${HACO_REFERENCE_REPO:-${ROOT}/third_party/Isaac-GR00T}"
 PYTHON_BIN="${PYTHON_BIN:-${REFERENCE_REPO}/.venv/bin/python}"
 
-if [[ "$#" -lt 2 ]]; then
-  echo "usage: bash scripts/deploy/haco/launch.sh CHECKPOINT BACKBONE [server args...]" >&2
+if [[ "$#" -lt 1 ]]; then
+  echo "usage: bash scripts/deploy/haco/launch.sh CHECKPOINT [BACKBONE] [server args...]" >&2
   exit 2
 fi
 CHECKPOINT="$1"
-BACKBONE_MODEL="$2"
-shift 2
+shift
+BACKBONE_MODEL="${HACO_VLM_MODEL_PATH:-${ROOT}/checkpoints/cosmos_reason2_2b}"
+if [[ "$#" -gt 0 && "$1" != -* ]]; then
+  BACKBONE_MODEL="$1"
+  shift
+fi
 
 HOST="${HACO_DEPLOY_HOST:-0.0.0.0}"
 PORT="${HACO_DEPLOY_PORT:-5500}"
