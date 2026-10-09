@@ -55,8 +55,11 @@ source third_party/Isaac-GR00T/.venv/bin/activate
 uv pip install -e '.[deployment]'
 ```
 
-HACo initializes from GR00T N1.7. Cosmos-Reason2 is its internal vision-language
-backbone; the current loader also needs its files locally.
+HACo initializes from GR00T N1.7, which already includes its Cosmos-Reason2
+vision-language backbone weights. The official loader first initializes that
+backbone from Cosmos-Reason2, then loads the full GR00T checkpoint. It also reads
+the tokenizer and image-processing files from Cosmos-Reason2, so download both
+checkpoints locally for this loading workflow.
 
 ```bash
 hf download nvidia/GR00T-N1.7-3B --local-dir checkpoints/base_model
