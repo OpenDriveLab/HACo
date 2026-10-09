@@ -20,19 +20,25 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-green" alt="Apache 2.0 License"></a>
 </p>
 
-**HACo** learns active compliance for dexterous manipulation by combining
-fingertip touch with joint-torque measurements. Contact-sensitive tasks require
-more than reproducing observed motion: the policy must adapt its commands to
-the forces acting on the hand. We collect demonstrations using teleoperation
-that regulates contact loads, then train HACo to predict the resulting
-compliant commands. The difference between commanded and observed joint
-positions supplies additional supervision for motion intent under contact.
-Our haptic representation combines fingertip deformation and wrench signals
-with torque feedback, capturing both local contact and loads transmitted
-through the hand. Gated cross-attention connects this representation to action
-generation. On five real-world tasks involving friction, tangential forces,
-fragile surfaces, rotational torque, and deformable objects, HACo succeeds in
-83% of trials on average, compared with 35% for the strongest evaluated baseline.
+> **Abstract:** **HACo** learns active compliance for dexterous manipulation by combining
+> fingertip touch with joint-torque measurements. Contact-sensitive tasks require
+> more than reproducing observed motion: the policy must adapt its commands to
+> the forces acting on the hand. We collect demonstrations using teleoperation
+> that regulates contact loads, then train HACo to predict the resulting
+> compliant commands. The difference between commanded and observed joint
+> positions supplies additional supervision for motion intent under contact.
+> Our haptic representation combines fingertip deformation and wrench signals
+> with torque feedback, capturing both local contact and loads transmitted
+> through the hand. Gated cross-attention connects this representation to action
+> generation. On five real-world tasks involving friction, tangential forces,
+> fragile surfaces, rotational torque, and deformable objects, HACo succeeds in
+> 83% of trials on average, compared with 35% for the strongest evaluated baseline.
+
+**Contributions:**
+
+- **Complementary haptic perception:** Fuses fingertip touch and joint torques to capture local contact and load propagation across the hand.
+- **Active compliance learning:** Learns executable compliant commands from regulated demonstrations, supported by auxiliary intent supervision and the Compliance Grounding Module (CGM).
+- **Real-world force benchmark:** Introduces a dexterous manipulation benchmark covering friction, tangential forces, fragile curved surfaces, rotational torque, and object deformation.
 
 [Watch the demo video](https://opendrivelab.github.io/Haco-Page/)
 
