@@ -174,3 +174,19 @@ validity masks. `execution_feedback` reports execution of the previous chunk.
 `hand_joint.left` and `hand_joint.right` are compliant joint commands
 (`q_cmp`) `(40, 22)`. `execution` specifies the frequency and which frames to
 execute.
+
+## Citation
+
+If you find our work helpful, please cite it below.
+
+```bibtex
+@misc{ye2026hacolearninghapticactive,
+  title         = {HACo: Learning Haptic Active Compliance for Force-Aware Dexterous Manipulation},
+  author        = {Naisheng Ye and Yinzhe Zhou and Junkai Zhao and Yuhang Lu and Checheng Yu and Zhenjie Yang and Pengwei Wang and Hongyang Li},
+  year          = {2026},
+  eprint        = {2609.36596},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.RO},
+  url           = {https://arxiv.org/abs/2609.36596}
+}
+```
